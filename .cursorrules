@@ -1,0 +1,382 @@
+# ===========================================
+# Teknolojiler: Next.js (App Router), React, TailwindCSS, Supabase
+# Amaç: Modern UI/UX, erişilebilirlik, performans ve güvenlik öncelikli e-ticaret + portfolyo sitesi
+# Son güncelleme: 2025-11-01
+# ===========================================
+
+# GENEL PRENSİPLER
+- Kullanılacak teknolojiler: Next.js (app/), React, TailwindCSS, Supabase (auth, db, storage), Framer Motion, TypeScript (önerilir).
+- UI/UX hedefi: temiz, anlaşılır, erişilebilir (WCAG AA), mobil-öncelikli (mobile-first) tasarım, mikro-animasyonlarla akıcı geçişler.
+- Kod kalitesi: TypeScript tercih edilir; ESLint + Prettier + Husky (pre-commit) + commitlint ile standardize edilecek.
+- Bileşen mimarisi: Atomic Design yaklaşımı (atoms/molecules/organisms/pages) veya benzeri modüler yapı kullanılmalı.
+- Tüm metinler ve içerikler için i18n altyapısı düşün (en azından TR/EN hazır olmalı).
+- Performans: Lighthouse 90+ hedefi; kritik kaynakları önceliklendir, image lazy-loading, code-splitting, ISR/SSR dengesi.
+
+# STIL & TASARIM SİSTEMİ
+- Tasarım tokenleri (colors, spacing, typography, radius, shadows) `design-tokens.json` içinde saklanmalı.
+- Renk paleti:
+  - Primary / Accent: #f97316 (turuncu) — marka vurgu rengi
+  - Neutral: beyaz / #f8fafc / #e5e7eb / #111827
+  - Success / Error / Info renkleri tanımlı olmalı
+- Tipografi:
+  - Başlık fontu: modern, okunaklı (örn. Inter veya Poppins)
+  - Gövde fontu: Inter veya system font fallback
+  - Ölçek: 6-8ms typographic scale ile h1..h6 belirlenmeli
+- UI Kit:
+  - Tailwind + komponent kütüphanesi (shadcn/ui veya Radix UI) ile erişilebilir bileşenler.
+  - Button, Input, Modal, Card, Toast, Tooltip, Navbar, Footer bileşenleri reusable olmalı.
+- Motion:
+  - Framer Motion kullanılacak; animasyonlar soft, hızlı (duration 120–300ms), kullanıcı tercihi (reduced-motion) dikkate alınmalı.
+  - Page transitions, hover micro-interactions ve load skeletons uygulanmalı.
+- UI/UX Pratikleri:
+  - Clear visual hierarchy; CTA’lar belirgin ve tutarlı.
+  - Formlar: label, helper text, error text ve client-side validation (zod veya yup).
+  - Accessibility: aria-* etiketleri, focus yönetimi, kontrast kontrolü (AA).
+  - Responsive breakpoints: mobile (≤640px), tablet (641–1024px), desktop (≥1025px).
+
+# KLASÖR YAPISI (GÜNCELLEME)
+app/
+ ├─ layout.tsx
+ ├─ globals.css
+ ├─ page.tsx (Anasayfa)
+ ├─ products/
+ │   ├─ page.tsx
+ │   ├─ [id]/page.tsx
+ ├─ projects/
+ │   ├─ page.tsx
+ ├─ contact/
+ │   ├─ page.tsx
+ ├─ admin/
+ │   ├─ page.tsx
+ │   ├─ dashboard/
+ │       ├─ page.tsx
+components/
+ ├─ atoms/
+ │   ├─ Button.tsx
+ │   ├─ Input.tsx
+ │   ├─ Image.tsx (wrapper over next/image with lazy+placeholder)
+ ├─ molecules/
+ │   ├─ ProductCard.tsx
+ │   ├─ ProductGrid.tsx
+ ├─ organisms/
+ │   ├─ Navbar.tsx
+ │   ├─ Footer.tsx
+ │   ├─ HeroSection.tsx
+ ├─ templates/
+ ├─ hooks/
+ ├─ lib/
+ ├─ styles/ (Tailwind config + design tokens)
+public/
+ ├─ assets/
+
+# GEREKLİ KURULUMLAR VE KOMUTLAR
+- Node.js LTS (20+) önerilir.
+- Proje başlatma:
+  - `npx create-next-app@latest --ts --experimental-app` (veya Next.js 14 scaffolding)
+- Paketler (örnek):
+  - Tailwind: `npm install -D tailwindcss postcss autoprefixer` ve `npx tailwindcss init -p`
+  - Supabase: `npm install @supabase/supabase-js`
+  - Framer Motion: `npm install framer-motion`
+  - Shadcn / Radix UI (opsiyonel): `npm install @radix-ui/react-*` veya `shadcn/ui`
+  - Zod (validation): `npm install zod`
+  - React Icons: `npm install react-icons`
+  - ESLint / Prettier / Husky / lint-staged / commitlint: (setup komutlarına göre)
+- Tailwind ayarları:
+  - `tailwind.config.js` içinde theme extend ile design tokens'e bağlı renk/spacing tanımla.
+  - `content` paths: `./app/**/*.{js,ts,jsx,tsx}`, `./components/**/*.{js,ts,jsx,tsx}`
+- TypeScript:
+  - `tsconfig.json` optimize edilecek; `strict` mod önerilir.
+
+# SUPABASE SETUP (ENV & POLICY)
+- Ortam değişkenleri (örnek `.env.local`):
+  - NEXT_PUBLIC_SUPABASE_URL=
+  - NEXT_PUBLIC_SUPABASE_ANON_KEY=
+  - SUPABASE_SERVICE_ROLE_KEY (sadece sunucu-side/CI için)
+- Önerilen tablolar: products, projects, messages, orders, users
+- Storage bucket: `public-assets` veya `project-images`
+- Policies:
+  - Public read için `SELECT` izni olabilir; yazma/CRUD sadece authenticated kullanıcılar/role kontrolü ile
+  - Her tablo için RLS (Row Level Security) açık olmalı ve policy'ler açıklı seçilmeli.
+- Backup:
+  - Düzenli dump veya Supabase snapshot planı (production için) düşün.
+
+# AUTHENTICATION & AUTH FLOW
+- Supabase Auth (email/password) kullan.
+- Admin rolü: kullanıcı attribute veya ek tablo (roles) ile admin yetkilendirmesi yapılmalı.
+- Admin panel sadece auth + role check sonrası erişilebilir olmalı (server-side guards veya middleware).
+- Session management NextAuth benzeri pattern yerine Supabase client ile yapılabilir, ama refresh token yönetimi düşünülmeli.
+
+# SECURITY & SEO
+- Security headers: CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy (Next.js headers in next.config).
+- CSP: img-src, script-src, style-src ayarlarını sıkı tut.
+- Rate limiting (API endpoints): edge middleware veya serverless function’larda throttling.
+- Input sanitization (özellikle messages, product descriptions).
+- SEO: dynamic meta tags, OpenGraph, Twitter Cards; structured data (JSON-LD) ürün sayfaları için.
+- Robots.txt ve sitemap.xml otomatik generation (next-sitemap veya custom).
+
+# PERFORMANCE & MONITORING
+- Image optimization: `next/image`, AVIF/WebP tercih et.
+- Critical CSS minimizasyon, Tailwind purge (content) aktif.
+- ISR/SSR: ürün listesi statik cache, ürün detay dinamik veya revalidate ile.
+- Analytics & Monitoring: Vercel Analytics, Google Analytics 4 veya Plausible gibi lightweight seçenek.
+- Error monitoring: Sentry veya alternatif (production).
+
+# TEST & CI/CD
+- Unit tests: Jest + React Testing Library
+- E2E: Playwright veya Cypress (kritik flows: checkout, admin CRUD)
+- CI: GitHub Actions veya GitLab CI
+  - Steps: install -> lint -> test -> build -> deploy
+  - Secrets: SUPABASE keys vs environment variables
+- Pre-deploy checks: accessibility audit (axe-core), lighthouse score gate (opsiyonel)
+
+# DEPLOYMENT
+- Önerilen: Vercel (Next.js native), alternatif Netlify/Cloudflare Pages + Edge Functions
+- Environment variables ayarlanmalı (Vercel Secrets)
+- Build optimizations: image domain whitelist, env-based feature flags
+
+# ANALYTICS & PRIVACY
+- GDPR/TKV uyumluluğu: cookie banner & explicit consent (analytics için)
+- Minimal tracking tercih et (Plausible veya server-side GA)
+
+# ACCESSIBILITY
+- Contrast >= AA
+- Form erişilebilirliği (label + aria-describedby)
+- Keyboard navigation & focus visible
+- Reduced motion preference respect
+
+# UX DETAYLARI (MADDE MADDE)
+- Sepet deneyimi: persistent cart (localStorage + server sync on auth)
+- Checkout stub: minimal — ödeme entegrasyonu planlanacak (Stripe veya yerel pos entegrasyonu)
+- Inline feedback: form error + success toast
+- Skeleton loaders for image-heavy pages
+- Filter & sort on products page + pagination or infinite scroll (infinite scroll için ARIA pattern düşün)
+- Lightbox for project gallery with keyboard controls
+
+# LOCAL DEVELOPMENT SCRIPTS (package.json örnek)
+- "dev": "next dev"
+- "build": "next build"
+- "start": "next start"
+- "lint": "eslint . --ext .ts,.tsx"
+- "format": "prettier --write ."
+- "test": "jest"
+
+# CODING STANDARDS
+- Atomic components, single responsibility
+- Props typing (TypeScript)
+- No inline styles; Tailwind utility classes or className composition used
+- Reusable hook’lar (useProducts, useAuth, useUpload)
+- Error handling: try/catch + user-friendly errors
+
+# DOCUMENTATION
+- README.md: setup, env vars, db migration steps, supabase init
+- Contributing.md + code style guide
+- Design tokens dosyası varsa storybook (opsiyonel) ile komponent library sun
+
+# NOTES (Özel Gereksinimler)
+- Admin route: `/admin` — login sayfası; login başarılı ise `/admin/dashboard`
+- Ürün detay: resimler slider; fiyat, stok (opsiyonel), kategori, özellikler
+- Projects (Yaptığımız işler): sadece görsel + kısa başlık; fiyat yok
+- Cursor yapay zekasına: bu dosyada yazan kuralları referans alarak component'leri üret ve oluştururken
+  - "use Tailwind + Framer Motion"
+  - "WCAG AA uyumluluğu"
+  - "Supabase auth ve storage entegrasyonunu kullan"
+  - "TypeScript ile yaz"
+  - "Unit test ve ESLint düzenlemelerini unutma"
+
+
+
+
+
+
+# ==========================================================
+# 🔐 Supabase Yapılandırması
+# ==========================================================
+supabase:
+  project_name: arora_site
+  env_variables:
+    NEXT_PUBLIC_SUPABASE_URL: "https://<YOUR_SUPABASE_URL>.supabase.co"
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: "<YOUR_SUPABASE_ANON_KEY>"
+    SUPABASE_SERVICE_ROLE_KEY: "<YOUR_SUPABASE_SERVICE_ROLE_KEY>"
+
+  database:
+    tables:
+      - name: users
+        description: Admin ve diğer kullanıcı hesaplarını tutar.
+        columns:
+          - id: uuid (primary key)
+          - email: text (unique, not null)
+          - password_hash: text (not null)
+          - role: text (default: "user") # admin / user
+          - created_at: timestamp (default now())
+        rls:
+          enabled: true
+          policies:
+            - name: "Users can view themselves"
+              definition: "auth.uid() = id"
+              for: select
+            - name: "Only admin can insert/update/delete"
+              definition: "auth.role() = 'admin'"
+              for: all
+
+      - name: products
+        description: Site ürünlerini tutar.
+        columns:
+          - id: uuid (primary key)
+          - name: text (not null)
+          - category: text (not null)
+          - category_id: text
+          - description: text
+          - features: jsonb
+          - image_url: text
+          - in_stock: boolean (default true)
+          - stock: int (default 0)
+          - badge: text
+          - created_at: timestamp (default now())
+          - updated_at: timestamp (default now())
+        rls:
+          enabled: true
+          policies:
+            - name: "Anyone can read products"
+              definition: "true"
+              for: select
+            - name: "Only admin can modify products"
+              definition: "auth.role() = 'admin'"
+              for: insert, update, delete
+
+      - name: projects
+        description: Firma projelerini tutar.
+        columns:
+          - id: uuid (primary key)
+          - title: text (not null)
+          - description: text
+          - image_url: text
+          - category: text
+          - created_at: timestamp (default now())
+        rls:
+          enabled: true
+          policies:
+            - name: "Anyone can read projects"
+              definition: "true"
+              for: select
+            - name: "Only admin can modify projects"
+              definition: "auth.role() = 'admin'"
+              for: insert, update, delete
+
+      - name: messages
+        description: İletişim formu mesajlarını tutar.
+        columns:
+          - id: uuid (primary key)
+          - name: text
+          - email: text
+          - subject: text
+          - message: text
+          - created_at: timestamp (default now())
+        rls:
+          enabled: true
+          policies:
+            - name: "Anyone can insert messages"
+              definition: "true"
+              for: insert
+            - name: "Only admin can read/delete messages"
+              definition: "auth.role() = 'admin'"
+              for: select, delete
+
+  storage:
+    buckets:
+      - name: product-images
+        public: true
+        file_size_limit_mb: 10
+        rls:
+          - name: "Anyone can read"
+            definition: "true"
+          - name: "Only admin can upload/delete"
+            definition: "auth.role() = 'admin'"
+
+      - name: project-images
+        public: true
+        file_size_limit_mb: 10
+        rls:
+          - name: "Anyone can read"
+            definition: "true"
+          - name: "Only admin can upload/delete"
+            definition: "auth.role() = 'admin'"
+
+# ==========================================================
+# ⚙️ Cursor Kodlama Kuralları
+# ==========================================================
+rules:
+  - when_creating_files:
+      - All Supabase config files must be stored in `lib/supabaseClient.js`
+      - .env.local must contain all Supabase keys
+      - Admin dashboard pages go under `/app/admin/`
+  - enforce_code_style:
+      - use_hooks: true
+      - prefer_async_await: true
+      - naming_convention: camelCase for JS
+      - components_folder_structure: atomic_design
+  - nextjs_best_practices:
+      - use_server_components: true where possible
+      - optimize_images: true
+      - metadata_api: true for SEO
+  - supabase_best_practices:
+      - always_use_service_role_for_admin_actions: true
+      - protect_env_keys: true
+      - never_expose_service_key_on_client: true
+
+# ==========================================================
+# 🚀 Otomatik Komutlar (Cursor)
+# ==========================================================
+commands:
+  setup_supabase:
+    - "npm install @supabase/supabase-js"
+    - "touch lib/supabaseClient.js"
+    - |
+      echo "
+      import { createClient } from '@supabase/supabase-js';
+
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+      export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+      "
+  create_admin_page:
+    - "mkdir -p app/admin"
+    - "touch app/admin/page.jsx"
+    - |
+      echo "
+      'use client';
+      import { useEffect, useState } from 'react';
+      import { supabase } from '@/lib/supabaseClient';
+
+      export default function AdminDashboard() {
+        const [products, setProducts] = useState([]);
+
+        useEffect(() => {
+          const fetchProducts = async () => {
+            const { data } = await supabase.from('products').select('*');
+            setProducts(data);
+          };
+          fetchProducts();
+        }, []);
+
+        return (
+          <main className='p-8'>
+            <h1 className='text-2xl font-semibold mb-4'>Admin Dashboard</h1>
+            <ul>
+              {products.map(p => (
+                <li key={p.id}>{p.name}</li>
+              ))}
+            </ul>
+          </main>
+        );
+      }
+      "
+
+
+
+
+
+
+# ===========================================
+# RULES END
+# ===========================================
