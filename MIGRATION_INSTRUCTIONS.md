@@ -71,3 +71,5 @@ Geçici olarak kod güncellendi ve `images` kolonu olmadan da çalışıyor. Anc
 
 
 
+
+

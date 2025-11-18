@@ -1,6 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Static export için - Türkticaret.net hosting için
+  output: 'export',
+  
   images: {
+    // Static export için image optimization'ı kapatıyoruz
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
@@ -14,34 +19,13 @@ const nextConfig = {
     ],
     formats: ['image/avif', 'image/webp'],
   },
-  // Disable caching for fresh data
-  experimental: {
-    serverActions: {
-      bodySizeLimit: '2mb',
-    },
-  },
-  // Force dynamic rendering for all pages
-  headers: async () => {
-    return [
-      {
-        source: '/:path*',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'no-store, no-cache, must-revalidate, proxy-revalidate',
-          },
-          {
-            key: 'Pragma',
-            value: 'no-cache',
-          },
-          {
-            key: 'Expires',
-            value: '0',
-          },
-        ],
-      },
-    ];
-  },
+  
+  // Static export'ta serverActions ve headers çalışmaz, bu yüzden kaldırıyoruz
+  // experimental: {
+  //   serverActions: {
+  //     bodySizeLimit: '2mb',
+  //   },
+  // },
 };
 
 export default nextConfig;
