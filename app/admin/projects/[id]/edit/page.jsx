@@ -11,12 +11,6 @@ import {
   projectCategories,
 } from '@/components/lib/projectsService';
 
-// Static export için generateStaticParams
-// Admin sayfaları client-side olduğu için boş array döndürüyoruz
-export async function generateStaticParams() {
-  return [];
-}
-
 export default function EditProjectPage() {
   const router = useRouter();
   const params = useParams();

@@ -11,12 +11,6 @@ import {
   categories,
 } from '@/components/lib/productsService';
 
-// Static export için generateStaticParams
-// Admin sayfaları client-side olduğu için boş array döndürüyoruz
-export async function generateStaticParams() {
-  return [];
-}
-
 export default function EditProductPage() {
   const router = useRouter();
   const params = useParams();
