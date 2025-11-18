@@ -1,11 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Static export için - Türkticaret.net hosting için
-  output: 'export',
+  // Vercel deployment için - static export kaldırıldı
+  // Next.js native olarak Vercel'de çalışacak
   
   images: {
-    // Static export için image optimization'ı kapatıyoruz
-    unoptimized: true,
+    // Vercel'de image optimization aktif
     remotePatterns: [
       {
         protocol: 'https',
@@ -19,13 +18,6 @@ const nextConfig = {
     ],
     formats: ['image/avif', 'image/webp'],
   },
-  
-  // Static export'ta serverActions ve headers çalışmaz, bu yüzden kaldırıyoruz
-  // experimental: {
-  //   serverActions: {
-  //     bodySizeLimit: '2mb',
-  //   },
-  // },
 };
 
 export default nextConfig;
