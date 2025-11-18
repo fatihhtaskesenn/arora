@@ -1,28 +1,63 @@
 import { getAllProducts } from '@/components/lib/productsService';
 import ProductDetailClient from '@/components/organisms/ProductDetailClient';
 
-// Static export için generateStaticParams
-// Bu fonksiyon build zamanında çalışır ve tüm ürün ID'lerini döndürür
+// generateStaticParams for static generation
+// This function runs at build time and returns all product IDs
 export async function generateStaticParams() {
   try {
-    // Supabase'den tüm ürünleri çek
-    const products = await getAllProducts();
+    // Try to fetch products from Supabase with timeout
+    const products = await Promise.race([
+      getAllProducts(),
+      new Promise((resolve) => 
+        setTimeout(() => {
+          console.warn('⚠️ Supabase timeout in generateStaticParams, using empty array');
+          resolve([]);
+        }, 5000)
+      )
+    ]);
     
-    // ID'leri string'e çevir ve döndür
-    return products.map((product) => ({
-      id: String(product.id),
-    }));
+    // If products found, return their IDs
+    if (products && products.length > 0) {
+      return products.map((product) => ({
+        id: String(product.id),
+      }));
+    }
+    
+    // If no products or timeout, return empty array (will use dynamic rendering)
+    console.warn('⚠️ No products found in generateStaticParams');
+    return [];
   } catch (error) {
-    console.error('Error generating static params:', error);
-    // Fallback: 1-100 arası ID'ler (eğer Supabase'e erişilemezse)
-    return Array.from({ length: 100 }, (_, i) => ({
-      id: String(i + 1),
-    }));
+    console.error('❌ Error generating static params:', error);
+    // Return empty array to allow dynamic rendering
+    return [];
   }
 }
 
-export default function ProductDetailPage({ params }) {
-  return <ProductDetailClient productId={params.id} />;
+export default async function ProductDetailPage({ params }) {
+  // Next.js 16+ params can be async, handle both cases
+  let resolvedParams = params;
+  
+  // Check if params is a Promise (async)
+  if (params && typeof params.then === 'function') {
+    try {
+      resolvedParams = await params;
+    } catch (error) {
+      console.error('❌ Error resolving params:', error);
+      return <ProductDetailClient productId="" />;
+    }
+  }
+  
+  // Extract product ID safely
+  const productId = resolvedParams?.id 
+    ? String(resolvedParams.id)
+    : (resolvedParams?.id?.toString() || '');
+  
+  if (!productId) {
+    console.error('❌ Product ID is missing in params:', resolvedParams);
+    console.error('❌ Full params object:', JSON.stringify(resolvedParams, null, 2));
+  }
+  
+  return <ProductDetailClient productId={productId} />;
 }
 
 

@@ -21,33 +21,78 @@ export default function ProductDetailClient({ productId }) {
   const [product, setProduct] = useState(null);
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [isLiked, setIsLiked] = useState(false);
+
+  // Debug: Log productId when component mounts or changes
+  useEffect(() => {
+    console.log('🔍 ProductDetailClient - productId:', productId);
+    console.log('🔍 ProductDetailClient - productId type:', typeof productId);
+    console.log('🔍 ProductDetailClient - productId value:', JSON.stringify(productId));
+  }, [productId]);
 
   // Fetch product from Supabase
   useEffect(() => {
+    let isMounted = true;
+    
     const fetchProduct = async () => {
       try {
         setLoading(true);
+        setError(null);
         console.log('🔄 Fetching product:', productId);
         
-        const productData = await getProductById(productId);
-        const related = await getRandomProducts(4);
+        if (!productId) {
+          throw new Error('Ürün ID bulunamadı');
+        }
+
+        // Timeout protection (8 seconds)
+        const productData = await Promise.race([
+          getProductById(productId),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Yükleme zaman aşımına uğradı')), 8000)
+          )
+        ]);
+
+        // Don't update state if component unmounted
+        if (!isMounted) return;
+
+        const related = await getRandomProducts(4).catch(() => []); // Don't block on related products
+        
+        if (!productData) {
+          throw new Error('Ürün bulunamadı');
+        }
         
         console.log('✅ Product loaded:', productData?.name);
         setProduct(productData);
         setRelatedProducts(related);
       } catch (error) {
         console.error('❌ Error loading product:', error);
+        
+        // Don't update state if component unmounted
+        if (!isMounted) return;
+        
         setProduct(null);
         setRelatedProducts([]);
+        setError(error?.message || 'Ürün yüklenirken bir hata oluştu. Lütfen tekrar deneyin.');
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
-    if (productId) {
+    if (productId && productId.trim() !== '') {
       fetchProduct();
+    } else {
+      setLoading(false);
+      setError('Geçersiz ürün ID. Lütfen ürün listesinden bir ürün seçin.');
+      console.error('❌ Invalid productId:', productId);
     }
+
+    // Cleanup function
+    return () => {
+      isMounted = false;
+    };
   }, [productId]);
   
   // WhatsApp mesaj şablonu ve URL
@@ -66,20 +111,28 @@ export default function ProductDetailClient({ productId }) {
     );
   }
 
-  // Not found state
-  if (!product) {
+  // Error state
+  if (error || !product) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-neutral-950 via-neutral-900 to-black flex items-center justify-center">
-        <div className="text-center">
+        <div className="text-center max-w-md mx-auto px-4">
           <div className="text-6xl mb-6">❌</div>
-          <h2 className="text-3xl font-bold text-white mb-4">Ürün Bulunamadı</h2>
-          <p className="text-neutral-400 mb-8">Aradığınız ürün mevcut değil.</p>
-          <button
-            onClick={() => router.push('/products')}
-            className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-full font-semibold"
-          >
-            Ürünlere Dön
-          </button>
+          <h2 className="text-3xl font-bold text-white mb-4">Ürün Yüklenemedi</h2>
+          <p className="text-neutral-400 mb-2">{error || 'Aradığınız ürün mevcut değil.'}</p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center mt-8">
+            <button
+              onClick={() => router.push('/products')}
+              className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-full font-semibold hover:shadow-lg transition-all"
+            >
+              Ürünlere Dön
+            </button>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-6 py-3 bg-neutral-700 text-white rounded-full font-semibold hover:bg-neutral-600 transition-all"
+            >
+              Sayfayı Yenile
+            </button>
+          </div>
         </div>
       </div>
     );
