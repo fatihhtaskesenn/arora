@@ -62,7 +62,7 @@ export default function ProductImageGallery({ images = [], productName = '' }) {
           animate={{ opacity: 1 }}
           onClick={() => setLightboxOpen(true)}
         >
-          <div className="relative aspect-[4/3]">
+          <div className="relative aspect-[4/3] bg-neutral-900 flex items-center justify-center">
             <AnimatePresence mode="wait">
               <motion.img
                 key={currentIndex}
@@ -72,7 +72,12 @@ export default function ProductImageGallery({ images = [], productName = '' }) {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.3 }}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain"
+                style={{
+                  imageRendering: 'auto',
+                  backfaceVisibility: 'hidden',
+                  WebkitBackfaceVisibility: 'hidden',
+                }}
                 loading="eager"
                 fetchPriority="high"
               />
@@ -175,7 +180,14 @@ export default function ProductImageGallery({ images = [], productName = '' }) {
             </button>
 
             {/* Main Image */}
-            <div className="relative max-w-7xl max-h-[90vh] w-full h-full flex items-center justify-center">
+            <div 
+              className="relative w-full h-full flex items-center justify-center"
+              style={{
+                maxWidth: '100vw',
+                maxHeight: '90vh',
+                padding: '2rem',
+              }}
+            >
               <AnimatePresence mode="wait">
                 <motion.img
                   key={currentIndex}
@@ -185,7 +197,17 @@ export default function ProductImageGallery({ images = [], productName = '' }) {
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}
                   transition={{ duration: 0.3 }}
-                  className="max-w-full max-h-full object-contain"
+                  className="object-contain"
+                  style={{
+                    maxWidth: '100%',
+                    maxHeight: '90vh',
+                    width: 'auto',
+                    height: 'auto',
+                    imageRendering: 'auto',
+                    backfaceVisibility: 'hidden',
+                    WebkitBackfaceVisibility: 'hidden',
+                    transform: 'translateZ(0)',
+                  }}
                   onClick={(e) => e.stopPropagation()}
                 />
               </AnimatePresence>

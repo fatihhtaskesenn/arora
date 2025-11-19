@@ -35,23 +35,125 @@ export const supabase = createClient(
       persistSession: true,
       autoRefreshToken: true,
       detectSessionInUrl: true,
+      storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+      flowType: 'pkce',
     },
   }
 );
 
+// Handle auth errors silently (especially refresh token errors)
+if (typeof window !== 'undefined') {
+  // Single auth state change listener to handle token errors
+  supabase.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'TOKEN_REFRESHED') {
+      // Token refreshed successfully
+      console.log('✅ Token refreshed');
+    } else if (event === 'SIGNED_OUT') {
+      // User signed out, clear any stale tokens
+      if (!session && typeof window !== 'undefined' && window.localStorage) {
+        try {
+          const keys = Object.keys(window.localStorage);
+          keys.forEach(key => {
+            if (key.startsWith('sb-')) {
+              window.localStorage.removeItem(key);
+            }
+          });
+        } catch (error) {
+          console.warn('⚠️ Error clearing localStorage:', error);
+        }
+      }
+    }
+  });
+
+  // Suppress console errors for refresh token issues
+  // This is a workaround for Supabase's internal token refresh mechanism
+  const originalConsoleError = console.error;
+  console.error = function(...args) {
+    const errorMessage = args.join(' ');
+    // Suppress refresh token errors from console
+    if (errorMessage.includes('Refresh Token') || 
+        errorMessage.includes('refresh_token') ||
+        errorMessage.includes('Invalid Refresh Token') ||
+        errorMessage.includes('Refresh Token Not Found')) {
+      // Silently clear invalid tokens
+      try {
+        if (typeof window !== 'undefined' && window.localStorage) {
+          const keys = Object.keys(window.localStorage);
+          keys.forEach(key => {
+            if (key.startsWith('sb-')) {
+              window.localStorage.removeItem(key);
+            }
+          });
+        }
+      } catch (clearError) {
+        // Ignore clear errors
+      }
+      // Don't log to console
+      return;
+    }
+    // Log other errors normally
+    originalConsoleError.apply(console, args);
+  };
+}
+
 // Helper: Get current user
 export const getCurrentUser = async () => {
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
-  
-  if (error) {
-    console.error('Error getting user:', error.message);
+  try {
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
+    
+    if (error) {
+      // Silently handle refresh token errors
+      if (error?.message?.includes('Refresh Token') || 
+          error?.message?.includes('refresh_token') ||
+          error?.message?.includes('Invalid Refresh Token') ||
+          error?.message?.includes('Refresh Token Not Found')) {
+        // Clear invalid tokens
+        if (typeof window !== 'undefined' && window.localStorage) {
+          try {
+            const keys = Object.keys(window.localStorage);
+            keys.forEach(key => {
+              if (key.startsWith('sb-')) {
+                window.localStorage.removeItem(key);
+              }
+            });
+          } catch (clearError) {
+            // Ignore clear errors
+          }
+        }
+        return null;
+      }
+      console.error('Error getting user:', error.message);
+      return null;
+    }
+    
+    return user;
+  } catch (error) {
+    // Handle any unexpected errors
+    if (error?.message?.includes('Refresh Token') || 
+        error?.message?.includes('refresh_token') ||
+        error?.message?.includes('Invalid Refresh Token') ||
+        error?.message?.includes('Refresh Token Not Found')) {
+      // Clear invalid tokens silently
+      if (typeof window !== 'undefined' && window.localStorage) {
+        try {
+          const keys = Object.keys(window.localStorage);
+          keys.forEach(key => {
+            if (key.startsWith('sb-')) {
+              window.localStorage.removeItem(key);
+            }
+          });
+        } catch (clearError) {
+          // Ignore clear errors
+        }
+      }
+      return null;
+    }
+    console.error('Unexpected error getting user:', error);
     return null;
   }
-  
-  return user;
 };
 
 // Helper: Check if user is admin

@@ -32,3 +32,4 @@ COMMENT ON COLUMN public.products.images IS 'Array of product image URLs. First 
 
 
 
+
