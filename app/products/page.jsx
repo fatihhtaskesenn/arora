@@ -171,12 +171,12 @@ export default function ProductsPage() {
           </div>
 
           {/* Sort Options */}
-          <div className="flex items-center justify-center gap-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 px-4">
             <HiFilter className="text-neutral-400" size={20} />
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="px-4 py-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full sm:w-auto px-4 py-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm sm:text-base"
             >
               <option value="default" className="bg-neutral-900">Varsayılan</option>
               <option value="price-low" className="bg-neutral-900">Fiyat: Düşükten Yükseğe</option>
@@ -204,7 +204,7 @@ export default function ProductsPage() {
           {/* Products Grid */}
           <AnimatePresence mode="wait">
             {loading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
                 {[...Array(8)].map((_, i) => (
                   <div key={i} className="animate-pulse">
                     <div className="bg-white/5 rounded-2xl h-96" />
@@ -214,7 +214,7 @@ export default function ProductsPage() {
             ) : filteredProducts.length > 0 ? (
               <motion.div
                 key={selectedCategory}
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8"
                 variants={containerVariants}
                 initial="hidden"
                 animate="visible"

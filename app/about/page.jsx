@@ -96,34 +96,34 @@ export default function AboutPage() {
               Arora
             </h1>
 
-            <p className="text-xl md:text-2xl text-neutral-300 leading-relaxed mb-8">
+            <p className="text-lg sm:text-xl md:text-2xl text-neutral-300 leading-relaxed mb-6 sm:mb-8 px-4">
               Doğal taşlar, elektrikli şömineler ve barbekü sistemleri konusunda 
               <span className="text-emerald-400 font-semibold"> 10 yılı aşkın deneyimimiz</span> ile 
               hayalinizdeki mekanları birlikte yaratıyoruz.
             </p>
 
-            <div className="flex justify-center gap-4">
+            <div className="flex flex-col sm:flex-row justify-center gap-4 px-4">
               <motion.a
                 href="https://www.instagram.com/aroratas/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-pink-600 to-rose-600 text-white font-bold rounded-full hover:shadow-lg transition-all"
+                className="flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-pink-600 to-rose-600 text-white font-bold rounded-full hover:shadow-lg transition-all text-base sm:text-lg"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
                 <FaInstagram size={20} />
-                Instagram'da Takip Edin
+                <span className="whitespace-nowrap">Instagram'da Takip Edin</span>
               </motion.a>
               <motion.a
                 href="https://wa.me/905339173355"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-bold rounded-full hover:shadow-lg transition-all"
+                className="flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-bold rounded-full hover:shadow-lg transition-all text-base sm:text-lg"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
                 <FaWhatsapp size={20} />
-                WhatsApp İletişim
+                <span className="whitespace-nowrap">WhatsApp İletişim</span>
               </motion.a>
             </div>
           </motion.div>
@@ -131,24 +131,24 @@ export default function AboutPage() {
       </section>
 
       {/* Stats Section */}
-      <section className="py-20">
+      <section className="py-12 sm:py-20">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
             {team.map((item, index) => (
               <motion.div
                 key={index}
-                className="text-center p-8 bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10"
+                className="text-center p-4 sm:p-6 md:p-8 bg-white/5 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-white/10"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
                 whileHover={{ scale: 1.05, borderColor: 'rgba(16, 185, 129, 0.5)' }}
               >
-                <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-emerald-400 to-rose-400 bg-clip-text text-transparent mb-2">
+                <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-emerald-400 to-rose-400 bg-clip-text text-transparent mb-2">
                   {item.count}
                 </div>
-                <div className="text-white font-semibold mb-1">{item.role}</div>
-                <div className="text-sm text-neutral-400">{item.description}</div>
+                <div className="text-white font-semibold mb-1 text-sm sm:text-base md:text-lg">{item.role}</div>
+                <div className="text-xs sm:text-sm text-neutral-400">{item.description}</div>
               </motion.div>
             ))}
           </div>
@@ -285,31 +285,31 @@ export default function AboutPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20">
+      <section className="py-12 sm:py-20">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
-            className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-600 to-rose-600 p-12 md:p-16 text-center"
+            className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-r from-emerald-600 to-rose-600 p-8 sm:p-12 md:p-16 text-center"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
             <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10" />
             <div className="relative z-10 max-w-3xl mx-auto">
-              <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 sm:mb-6 px-2">
                 Hayalinizdeki Projeyi Birlikte Gerçekleştirelim
               </h2>
-              <p className="text-xl text-white/90 mb-8">
+              <p className="text-base sm:text-lg md:text-xl text-white/90 mb-6 sm:mb-8 px-2">
                 10 yıllık deneyimimiz ve uzman ekibimizle size özel çözümler üretmeye hazırız.
               </p>
               <motion.a
                 href="/contact"
-                className="inline-flex items-center gap-3 px-8 py-4 bg-white text-emerald-600 font-bold rounded-full hover:bg-neutral-100 transition-colors shadow-xl"
+                className="inline-flex items-center justify-center gap-3 px-6 sm:px-8 py-3 sm:py-4 bg-white text-emerald-600 font-bold rounded-full hover:bg-neutral-100 transition-colors shadow-xl text-sm sm:text-base"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                Bizimle İletişime Geçin
+                <span>Bizimle İletişime Geçin</span>
                 <svg
-                  className="w-5 h-5"
+                  className="w-4 h-4 sm:w-5 sm:h-5"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"

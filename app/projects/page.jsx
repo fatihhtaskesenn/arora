@@ -126,7 +126,7 @@ export default function ProjectsPage() {
 
           {/* Stats */}
           <motion.div
-            className="grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-4xl mx-auto mb-20"
+            className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 max-w-4xl mx-auto mb-12 sm:mb-20 px-4"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6, duration: 0.6 }}
@@ -138,14 +138,14 @@ export default function ProjectsPage() {
             ].map((stat, index) => (
               <motion.div
                 key={index}
-                className="text-center p-6 bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10"
+                className="text-center p-4 sm:p-6 bg-white/5 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-white/10"
                 whileHover={{ scale: 1.05, borderColor: 'rgba(99, 102, 241, 0.5)' }}
                 transition={{ duration: 0.2 }}
               >
-                <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent mb-2">
+                <div className="text-3xl sm:text-4xl md:text-5xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent mb-2">
                   {stat.number}
                 </div>
-                <div className="text-neutral-400 font-medium">
+                <div className="text-neutral-400 font-medium text-sm sm:text-base">
                   {stat.label}
                 </div>
               </motion.div>
@@ -158,7 +158,7 @@ export default function ProjectsPage() {
       <section className="pb-32">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           {loading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
               {[...Array(6)].map((_, i) => (
                 <div key={i} className="animate-pulse">
                   <div className="bg-white/5 rounded-2xl aspect-[4/3]" />

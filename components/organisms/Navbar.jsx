@@ -137,9 +137,9 @@ const Navbar = () => {
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.3 }}
             >
-              <div className="container mx-auto px-4 py-8">
+              <div className="container mx-auto px-4 sm:px-6 py-6">
                 {/* Navigation Links */}
-                <div className="flex flex-col gap-2 mb-6">
+                <div className="flex flex-col gap-3 mb-6">
                   {navLinks.map((link, index) => (
                     <motion.div
                       key={link.href}
@@ -149,19 +149,24 @@ const Navbar = () => {
                     >
                       <Link
                         href={link.href}
-                        className="block py-4 px-6 text-lg font-semibold text-rose-50 hover:text-emerald-300 hover:bg-rose-800 rounded-2xl transition-colors"
+                        className="block py-5 px-6 text-xl font-bold text-white hover:text-emerald-300 bg-rose-800/50 hover:bg-rose-700/70 rounded-2xl transition-all duration-200 border border-rose-700/50 hover:border-emerald-500/50 shadow-lg"
                         onClick={toggleMobileMenu}
                       >
-                        {link.label}
+                        <div className="flex items-center justify-between">
+                          <span>{link.label}</span>
+                          <svg className="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </div>
                       </Link>
                     </motion.div>
                   ))}
                 </div>
 
                 {/* Mobile Actions */}
-                <div className="flex flex-col gap-3 pt-6 border-t border-rose-700">
+                <div className="flex flex-col gap-3 pt-4 border-t border-rose-700/50">
                   <Link href="/contact" onClick={toggleMobileMenu} className="w-full">
-                    <button className="w-full px-8 py-4 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-bold rounded-full shadow-lg">
+                    <button className="w-full px-8 py-5 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-bold text-lg rounded-full shadow-xl hover:shadow-2xl hover:from-emerald-600 hover:to-emerald-700 transition-all duration-200">
                       İletişime Geç
                     </button>
                   </Link>
