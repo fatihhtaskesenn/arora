@@ -70,8 +70,8 @@ export default function ContactPage() {
     {
       icon: FaEnvelope,
       title: 'E-posta',
-      info: 'glovvfire@gmail.com',
-      link: 'mailto:glovvfire@gmail.com',
+      info: 'info@aroratas.com',
+      link: 'mailto:info@aroratas.com',
       color: 'from-purple-500 to-pink-500',
       hoverColor: 'hover:border-purple-400',
     },

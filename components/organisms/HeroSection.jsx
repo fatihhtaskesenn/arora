@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
 import { HiChevronLeft, HiChevronRight, HiArrowRight } from 'react-icons/hi';
+import { getFeaturedProjects } from '../lib/projectsService';
 
 /**
  * HeroSection Component - Project-focused hero with immersive slider
@@ -38,27 +39,51 @@ const HeroSection = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [direction, setDirection] = useState(0);
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
+  const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   // Döngüsel kelimeler
   const rotatingWords = ['Barbekü', 'Elektrikli Şömine', 'Doğal Taş', 'Taştan Yapılma Ürünler'];
 
-  // Proje görselleri
-  const projects = [
-    { image: '/projects/prfoto1.png', title: 'Premium Özel Proje', category: 'İç Mekan Tasarımı' },
-    { image: '/projects/prfoto2.png', title: 'Modern Mekan Düzenlemesi', category: 'Kurumsal Proje' },
-    { image: '/projects/prfoto3.png', title: 'Özel Dekorasyon Projesi', category: 'Ev Dekorasyonu' },
-    { image: '/projects/prfoto4.png', title: 'Kurumsal Tasarım Projesi', category: 'Ofis Dizaynı' },
-    { image: '/projects/prfoto5.png', title: 'Lüks İç Mimari Çalışması', category: 'Lüks Konut' },
-    { image: '/projects/prfoto6.png', title: 'Estetik Mekan Tasarımı', category: 'Ticari Mekan' },
-  ];
+  // Fetch projects from Supabase
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        setLoading(true);
+        const data = await getFeaturedProjects(6);
+        
+        if (data && data.length > 0) {
+          // Transform Supabase data to match component format
+          const transformedProjects = data.map(project => ({
+            image: project.image,
+            title: project.title || 'Proje',
+            category: project.category || 'Genel',
+          }));
+          setProjects(transformedProjects);
+        } else {
+          // Fallback to empty array if no projects
+          setProjects([]);
+        }
+      } catch (error) {
+        console.error('Error loading projects for hero:', error);
+        setProjects([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProjects();
+  }, []);
 
   // Auto slide
   useEffect(() => {
+    if (projects.length === 0) return;
+    
     const timer = setInterval(() => {
       handleNext();
     }, 5000);
     return () => clearInterval(timer);
-  }, [currentSlide]);
+  }, [currentSlide, projects.length]);
 
   // Rotating words animation
   useEffect(() => {
@@ -69,11 +94,13 @@ const HeroSection = () => {
   }, []);
 
   const handleNext = () => {
+    if (projects.length === 0) return;
     setDirection(1);
     setCurrentSlide((prev) => (prev + 1) % projects.length);
   };
 
   const handlePrev = () => {
+    if (projects.length === 0) return;
     setDirection(-1);
     setCurrentSlide((prev) => (prev - 1 + projects.length) % projects.length);
   };
@@ -303,74 +330,90 @@ const HeroSection = () => {
             <div className="relative w-full rounded-3xl overflow-hidden shadow-2xl border border-emerald-500/30">
               {/* Slider - ULTRA LARGE (90% bigger total) */}
               <div className="relative aspect-[16/9] lg:aspect-[21/9] w-full">
-                <AnimatePresence initial={false} custom={direction}>
-                  <motion.div
-                    key={currentSlide}
-                    custom={direction}
-                    variants={slideVariants}
-                    initial="enter"
-                    animate="center"
-                    exit="exit"
-                    transition={{
-                      x: { type: "spring", stiffness: 300, damping: 30 },
-                      opacity: { duration: 0.5 }
-                    }}
-                    className="absolute inset-0"
-                  >
-                    <img
-                      src={projects[currentSlide].image}
-                      alt={projects[currentSlide].title}
-                      className="absolute inset-0 w-full h-full object-cover"
-                      loading="eager"
-                      fetchPriority="high"
-                      style={{ opacity: 0, transition: 'opacity 0.6s ease-in-out', willChange: 'opacity' }}
-                      onLoad={(e) => {
-                        e.target.style.opacity = 1;
+                {loading || projects.length === 0 ? (
+                  <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-neutral-800 via-neutral-900 to-black">
+                    <div className="animate-pulse">
+                      <svg className="w-16 h-16 text-neutral-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                  </div>
+                ) : (
+                  <AnimatePresence initial={false} custom={direction}>
+                    <motion.div
+                      key={currentSlide}
+                      custom={direction}
+                      variants={slideVariants}
+                      initial="enter"
+                      animate="center"
+                      exit="exit"
+                      transition={{
+                        x: { type: "spring", stiffness: 300, damping: 30 },
+                        opacity: { duration: 0.5 }
                       }}
-                      onError={(e) => {
-                        console.error('Slider image failed:', projects[currentSlide].image);
-                        e.target.style.opacity = 1;
-                      }}
-                    />
-                    {/* Light Gradient Overlay - No text on image */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900/50 via-transparent to-transparent" />
-                  </motion.div>
-                </AnimatePresence>
+                      className="absolute inset-0"
+                    >
+                      <img
+                        src={projects[currentSlide]?.image}
+                        alt={projects[currentSlide]?.title || 'Proje'}
+                        className="absolute inset-0 w-full h-full object-cover"
+                        loading="eager"
+                        fetchPriority="high"
+                        style={{ opacity: 0, transition: 'opacity 0.6s ease-in-out', willChange: 'opacity' }}
+                        onLoad={(e) => {
+                          e.target.style.opacity = 1;
+                        }}
+                        onError={(e) => {
+                          console.error('Slider image failed:', projects[currentSlide]?.image);
+                          e.target.style.opacity = 1;
+                        }}
+                      />
+                      {/* Light Gradient Overlay - No text on image */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-900/50 via-transparent to-transparent" />
+                    </motion.div>
+                  </AnimatePresence>
+                )}
 
                 {/* Navigation Buttons - Larger */}
-                <button
-                  onClick={handlePrev}
-                  className="absolute left-6 lg:left-8 top-1/2 -translate-y-1/2 z-10 w-16 h-16 bg-white/90 hover:bg-white rounded-full flex items-center justify-center transition-all group shadow-xl"
-                  aria-label="Previous slide"
-                >
-                  <HiChevronLeft className="text-slate-700 text-3xl group-hover:-translate-x-0.5 transition-transform" />
-                </button>
-                <button
-                  onClick={handleNext}
-                  className="absolute right-6 lg:right-8 top-1/2 -translate-y-1/2 z-10 w-16 h-16 bg-white/90 hover:bg-white rounded-full flex items-center justify-center transition-all group shadow-xl"
-                  aria-label="Next slide"
-                >
-                  <HiChevronRight className="text-slate-700 text-3xl group-hover:translate-x-0.5 transition-transform" />
-                </button>
+                {!loading && projects.length > 0 && (
+                  <>
+                    <button
+                      onClick={handlePrev}
+                      className="absolute left-6 lg:left-8 top-1/2 -translate-y-1/2 z-10 w-16 h-16 bg-white/90 hover:bg-white rounded-full flex items-center justify-center transition-all group shadow-xl"
+                      aria-label="Previous slide"
+                    >
+                      <HiChevronLeft className="text-slate-700 text-3xl group-hover:-translate-x-0.5 transition-transform" />
+                    </button>
+                    <button
+                      onClick={handleNext}
+                      className="absolute right-6 lg:right-8 top-1/2 -translate-y-1/2 z-10 w-16 h-16 bg-white/90 hover:bg-white rounded-full flex items-center justify-center transition-all group shadow-xl"
+                      aria-label="Next slide"
+                    >
+                      <HiChevronRight className="text-slate-700 text-3xl group-hover:translate-x-0.5 transition-transform" />
+                    </button>
+                  </>
+                )}
 
                 {/* Dots Indicator - Enhanced */}
-                <div className="absolute bottom-8 lg:bottom-12 right-8 lg:right-12 z-10 flex gap-2.5">
-                  {projects.map((_, index) => (
-                    <button
-                      key={index}
-                      onClick={() => {
-                        setDirection(index > currentSlide ? 1 : -1);
-                        setCurrentSlide(index);
-                      }}
-                      className={`transition-all duration-300 rounded-full ${
-                        index === currentSlide
-                          ? 'bg-gradient-to-r from-emerald-500 to-rose-600 w-12 h-3'
-                          : 'bg-white/70 hover:bg-white w-3 h-3'
-                      }`}
-                      aria-label={`Go to slide ${index + 1}`}
-                    />
-                  ))}
-                </div>
+                {!loading && projects.length > 0 && (
+                  <div className="absolute bottom-8 lg:bottom-12 right-8 lg:right-12 z-10 flex gap-2.5">
+                    {projects.map((_, index) => (
+                      <button
+                        key={index}
+                        onClick={() => {
+                          setDirection(index > currentSlide ? 1 : -1);
+                          setCurrentSlide(index);
+                        }}
+                        className={`transition-all duration-300 rounded-full ${
+                          index === currentSlide
+                            ? 'bg-gradient-to-r from-emerald-500 to-rose-600 w-12 h-3'
+                            : 'bg-white/70 hover:bg-white w-3 h-3'
+                        }`}
+                        aria-label={`Go to slide ${index + 1}`}
+                      />
+                    ))}
+                  </div>
+                )}
 
                 {/* View All Projects Button */}
                 <motion.div
@@ -390,70 +433,74 @@ const HeroSection = () => {
             </div>
 
             {/* Project Info Section - Below Slider */}
-            <motion.div
-              className="mt-6 p-6 lg:p-8 bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-md rounded-2xl border border-emerald-500/20"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1 }}
-            >
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={currentSlide}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  {/* Category Badge */}
-                  <div className="inline-block mb-3">
-                    <span className="px-4 py-2 bg-gradient-to-r from-emerald-500/20 to-rose-600/20 border border-emerald-500/30 text-emerald-300 text-sm font-bold rounded-full">
-                      {projects[currentSlide].category}
-                    </span>
-                  </div>
-                  
-                  {/* Project Title */}
-                  <h3 className="text-2xl lg:text-3xl font-bold text-white mb-2 leading-tight">
-                    {projects[currentSlide].title}
-                  </h3>
-                  
-                  {/* Project Number */}
-                  <p className="text-slate-400 text-sm font-medium">
-                    Proje #{currentSlide + 1} / {projects.length}
-                  </p>
-                </motion.div>
-              </AnimatePresence>
-            </motion.div>
+            {!loading && projects.length > 0 && (
+              <motion.div
+                className="mt-6 p-6 lg:p-8 bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-md rounded-2xl border border-emerald-500/20"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1 }}
+              >
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={currentSlide}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    {/* Category Badge */}
+                    <div className="inline-block mb-3">
+                      <span className="px-4 py-2 bg-gradient-to-r from-emerald-500/20 to-rose-600/20 border border-emerald-500/30 text-emerald-300 text-sm font-bold rounded-full">
+                        {projects[currentSlide]?.category || 'Genel'}
+                      </span>
+                    </div>
+                    
+                    {/* Project Title */}
+                    <h3 className="text-2xl lg:text-3xl font-bold text-white mb-2 leading-tight">
+                      {projects[currentSlide]?.title || 'Proje'}
+                    </h3>
+                    
+                    {/* Project Number */}
+                    <p className="text-slate-400 text-sm font-medium">
+                      Proje #{currentSlide + 1} / {projects.length}
+                    </p>
+                  </motion.div>
+                </AnimatePresence>
+              </motion.div>
+            )}
 
             {/* Thumbnail Preview - Larger */}
-            <motion.div
-              className="hidden lg:flex gap-4 mt-5 justify-center"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.2 }}
-            >
-              {projects.map((project, index) => (
-                <motion.button
-                  key={index}
-                  onClick={() => {
-                    setDirection(index > currentSlide ? 1 : -1);
-                    setCurrentSlide(index);
-                  }}
-                  className={`relative w-24 h-16 rounded-xl overflow-hidden transition-all duration-300 border-2 ${
-                    index === currentSlide
-                      ? 'border-emerald-500 ring-2 ring-emerald-200 scale-110 shadow-lg'
-                      : 'border-slate-200 opacity-60 hover:opacity-100 hover:border-emerald-300'
-                  }`}
-                  whileHover={{ scale: index === currentSlide ? 1.1 : 1.05 }}
-                >
-                  <img
-                    src={project.image}
-                    alt={project.title}
-                    className="absolute inset-0 w-full h-full object-cover"
-                    loading="lazy"
-                  />
-                </motion.button>
-              ))}
-            </motion.div>
+            {!loading && projects.length > 0 && (
+              <motion.div
+                className="hidden lg:flex gap-4 mt-5 justify-center"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1.2 }}
+              >
+                {projects.map((project, index) => (
+                  <motion.button
+                    key={index}
+                    onClick={() => {
+                      setDirection(index > currentSlide ? 1 : -1);
+                      setCurrentSlide(index);
+                    }}
+                    className={`relative w-24 h-16 rounded-xl overflow-hidden transition-all duration-300 border-2 ${
+                      index === currentSlide
+                        ? 'border-emerald-500 ring-2 ring-emerald-200 scale-110 shadow-lg'
+                        : 'border-slate-200 opacity-60 hover:opacity-100 hover:border-emerald-300'
+                    }`}
+                    whileHover={{ scale: index === currentSlide ? 1.1 : 1.05 }}
+                  >
+                    <img
+                      src={project.image}
+                      alt={project.title || 'Proje'}
+                      className="absolute inset-0 w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  </motion.button>
+                ))}
+              </motion.div>
+            )}
           </motion.div>
         </div>
       </div>

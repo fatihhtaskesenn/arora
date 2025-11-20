@@ -155,13 +155,13 @@ const Footer = () => {
               </li>
               <li>
                 <a
-                  href="mailto:glovvfire@gmail.com"
+                  href="mailto:info@aroratas.com"
                   className="flex items-center gap-3 text-neutral-400 hover:text-emerald-400 transition-colors group"
                 >
                   <div className="w-10 h-10 bg-emerald-500/10 rounded-full flex items-center justify-center group-hover:bg-emerald-500/20 transition-colors">
                     <FaEnvelope size={16} className="text-emerald-400" />
                   </div>
-                  <span>glovvfire@gmail.com</span>
+                  <span>info@aroratas.com</span>
                 </a>
               </li>
               <li>

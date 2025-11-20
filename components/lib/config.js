@@ -18,7 +18,7 @@ export const config = {
   site: {
     name: 'ARORA',
     description: 'Premium taş ve mermer ürünleri',
-    email: 'glovvfire@gmail.com',
+    email: 'info@aroratas.com',
     phone: '+90 533 917 33 55',
     instagram: 'https://www.instagram.com/aroratas/',
     address: 'Osmangazi, Ahmet Şireci Blv No:1, 27000 Şehitkamil/Gaziantep',

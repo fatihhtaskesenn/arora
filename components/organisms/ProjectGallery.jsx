@@ -104,7 +104,7 @@ const ProjectGallery = ({ projects = [], columns = 'auto' }) => {
                 key={`gallery-${index}`}
                 src={project.image}
                 alt={project.title || `Proje ${index + 1}`}
-                className="absolute inset-0 w-full h-full object-cover transition-all duration-500 group-hover:scale-110"
+                className="absolute inset-0 w-full h-full object-contain transition-all duration-500 group-hover:scale-110"
                 loading="eager"
                 fetchPriority="high"
                 decoding="async"
