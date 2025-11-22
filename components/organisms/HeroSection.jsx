@@ -327,9 +327,9 @@ const HeroSection = () => {
             transition={{ duration: 0.8, delay: 0.3 }}
             className="lg:col-span-10 relative z-10 w-full"
           >
-            <div className="relative w-full rounded-3xl overflow-hidden shadow-2xl border border-emerald-500/30">
-              {/* Slider - ULTRA LARGE (90% bigger total) */}
-              <div className="relative aspect-[16/9] lg:aspect-[21/9] w-full">
+            <div className="relative w-full rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl sm:shadow-2xl border border-emerald-500/20 sm:border-emerald-500/30">
+              {/* Slider */}
+              <div className="relative aspect-[4/3] sm:aspect-[16/9] lg:aspect-[21/9] w-full">
                 {loading || projects.length === 0 ? (
                   <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-neutral-800 via-neutral-900 to-black">
                     <div className="animate-pulse">
@@ -368,35 +368,35 @@ const HeroSection = () => {
                           e.target.style.opacity = 1;
                         }}
                       />
-                      {/* Light Gradient Overlay - No text on image */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-slate-900/50 via-transparent to-transparent" />
+                      {/* Light Gradient Overlay - Minimal */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
                     </motion.div>
                   </AnimatePresence>
                 )}
 
-                {/* Navigation Buttons - Larger */}
+                {/* Navigation Buttons - Compact */}
                 {!loading && projects.length > 0 && (
                   <>
                     <button
                       onClick={handlePrev}
-                      className="absolute left-6 lg:left-8 top-1/2 -translate-y-1/2 z-10 w-16 h-16 bg-white/90 hover:bg-white rounded-full flex items-center justify-center transition-all group shadow-xl"
+                      className="absolute left-2 sm:left-4 lg:left-6 top-1/2 -translate-y-1/2 z-10 w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded-full flex items-center justify-center transition-all group shadow-lg"
                       aria-label="Previous slide"
                     >
-                      <HiChevronLeft className="text-slate-700 text-3xl group-hover:-translate-x-0.5 transition-transform" />
+                      <HiChevronLeft className="text-white text-xl sm:text-2xl lg:text-3xl group-hover:-translate-x-0.5 transition-transform" />
                     </button>
                     <button
                       onClick={handleNext}
-                      className="absolute right-6 lg:right-8 top-1/2 -translate-y-1/2 z-10 w-16 h-16 bg-white/90 hover:bg-white rounded-full flex items-center justify-center transition-all group shadow-xl"
+                      className="absolute right-2 sm:right-4 lg:right-6 top-1/2 -translate-y-1/2 z-10 w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded-full flex items-center justify-center transition-all group shadow-lg"
                       aria-label="Next slide"
                     >
-                      <HiChevronRight className="text-slate-700 text-3xl group-hover:translate-x-0.5 transition-transform" />
+                      <HiChevronRight className="text-white text-xl sm:text-2xl lg:text-3xl group-hover:translate-x-0.5 transition-transform" />
                     </button>
                   </>
                 )}
 
-                {/* Dots Indicator - Enhanced */}
+                {/* Dots Indicator - Minimal */}
                 {!loading && projects.length > 0 && (
-                  <div className="absolute bottom-8 lg:bottom-12 right-8 lg:right-12 z-10 flex gap-2.5">
+                  <div className="absolute bottom-3 sm:bottom-4 lg:bottom-6 right-3 sm:right-4 lg:right-6 z-10 flex gap-1.5 sm:gap-2">
                     {projects.map((_, index) => (
                       <button
                         key={index}
@@ -406,8 +406,8 @@ const HeroSection = () => {
                         }}
                         className={`transition-all duration-300 rounded-full ${
                           index === currentSlide
-                            ? 'bg-gradient-to-r from-emerald-500 to-rose-600 w-12 h-3'
-                            : 'bg-white/70 hover:bg-white w-3 h-3'
+                            ? 'bg-white w-6 sm:w-8 h-2 sm:h-2.5'
+                            : 'bg-white/40 hover:bg-white/60 w-2 h-2'
                         }`}
                         aria-label={`Go to slide ${index + 1}`}
                       />
@@ -415,27 +415,27 @@ const HeroSection = () => {
                   </div>
                 )}
 
-                {/* View All Projects Button */}
+                {/* View All Projects Button - Hidden on mobile, shown on desktop */}
                 <motion.div
-                  className="absolute top-6 lg:top-10 right-6 lg:right-10 z-10"
+                  className="hidden md:block absolute top-4 lg:top-6 right-4 lg:right-6 z-10"
                   initial={{ opacity: 0, scale: 0 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 1, duration: 0.5 }}
                 >
                   <Link href="/projects">
-                    <button className="px-6 py-3 bg-white/95 border border-slate-200 text-slate-700 font-bold rounded-full text-sm hover:bg-white hover:shadow-lg transition-all duration-300 flex items-center gap-2 group">
+                    <button className="px-4 py-2 bg-black/60 hover:bg-black/80 backdrop-blur-sm border border-white/20 text-white font-semibold rounded-full text-xs lg:text-sm hover:shadow-lg transition-all duration-300 flex items-center gap-1.5 group">
                       Tüm Projeler
-                      <HiArrowRight className="group-hover:translate-x-1 transition-transform" />
+                      <HiArrowRight className="group-hover:translate-x-1 transition-transform text-sm" />
                     </button>
                   </Link>
                 </motion.div>
               </div>
             </div>
 
-            {/* Project Info Section - Below Slider */}
+            {/* Project Info Section - Below Slider - Hidden on mobile */}
             {!loading && projects.length > 0 && (
               <motion.div
-                className="mt-6 p-6 lg:p-8 bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-md rounded-2xl border border-emerald-500/20"
+                className="hidden md:block mt-4 lg:mt-6 p-4 lg:p-6 bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-md rounded-xl lg:rounded-2xl border border-emerald-500/20"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 1 }}
@@ -449,19 +449,19 @@ const HeroSection = () => {
                     transition={{ duration: 0.3 }}
                   >
                     {/* Category Badge */}
-                    <div className="inline-block mb-3">
-                      <span className="px-4 py-2 bg-gradient-to-r from-emerald-500/20 to-rose-600/20 border border-emerald-500/30 text-emerald-300 text-sm font-bold rounded-full">
+                    <div className="inline-block mb-2 lg:mb-3">
+                      <span className="px-3 py-1.5 lg:px-4 lg:py-2 bg-gradient-to-r from-emerald-500/20 to-rose-600/20 border border-emerald-500/30 text-emerald-300 text-xs lg:text-sm font-semibold rounded-full">
                         {projects[currentSlide]?.category || 'Genel'}
                       </span>
                     </div>
                     
                     {/* Project Title */}
-                    <h3 className="text-2xl lg:text-3xl font-bold text-white mb-2 leading-tight">
+                    <h3 className="text-lg lg:text-2xl xl:text-3xl font-bold text-white mb-1 lg:mb-2 leading-tight">
                       {projects[currentSlide]?.title || 'Proje'}
                     </h3>
                     
                     {/* Project Number */}
-                    <p className="text-slate-400 text-sm font-medium">
+                    <p className="text-slate-400 text-xs lg:text-sm font-medium">
                       Proje #{currentSlide + 1} / {projects.length}
                     </p>
                   </motion.div>
@@ -469,10 +469,10 @@ const HeroSection = () => {
               </motion.div>
             )}
 
-            {/* Thumbnail Preview - Larger */}
+            {/* Thumbnail Preview - Desktop Only */}
             {!loading && projects.length > 0 && (
               <motion.div
-                className="hidden lg:flex gap-4 mt-5 justify-center"
+                className="hidden xl:flex gap-3 mt-4 justify-center"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 1.2 }}
@@ -484,12 +484,12 @@ const HeroSection = () => {
                       setDirection(index > currentSlide ? 1 : -1);
                       setCurrentSlide(index);
                     }}
-                    className={`relative w-24 h-16 rounded-xl overflow-hidden transition-all duration-300 border-2 ${
+                    className={`relative w-20 h-14 rounded-lg overflow-hidden transition-all duration-300 border-2 ${
                       index === currentSlide
-                        ? 'border-emerald-500 ring-2 ring-emerald-200 scale-110 shadow-lg'
-                        : 'border-slate-200 opacity-60 hover:opacity-100 hover:border-emerald-300'
+                        ? 'border-emerald-500 ring-1 ring-emerald-200 scale-105 shadow-md'
+                        : 'border-slate-200/50 opacity-60 hover:opacity-100 hover:border-emerald-300'
                     }`}
-                    whileHover={{ scale: index === currentSlide ? 1.1 : 1.05 }}
+                    whileHover={{ scale: index === currentSlide ? 1.05 : 1.02 }}
                   >
                     <img
                       src={project.image}
