@@ -123,7 +123,7 @@ const HeroSection = () => {
   };
 
   return (
-    <section className="relative min-h-screen flex items-center overflow-x-hidden bg-gradient-to-br from-slate-800 via-slate-900 to-neutral-950 pt-32">
+    <section className="relative min-h-screen flex items-start md:items-center overflow-x-hidden bg-gradient-to-br from-slate-800 via-slate-900 to-neutral-950 pt-24 md:pt-32">
       {/* Animated Stone Texture Background */}
       <div className="absolute inset-0 opacity-30">
         {/* Organic stone texture patterns */}
@@ -374,22 +374,22 @@ const HeroSection = () => {
                   </AnimatePresence>
                 )}
 
-                {/* Navigation Buttons - Compact */}
+                {/* Navigation Buttons - Desktop Only */}
                 {!loading && projects.length > 0 && (
                   <>
                     <button
                       onClick={handlePrev}
-                      className="absolute left-2 sm:left-4 lg:left-6 top-1/2 -translate-y-1/2 z-10 w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded-full flex items-center justify-center transition-all group shadow-lg"
+                      className="hidden md:flex absolute left-4 lg:left-6 top-1/2 -translate-y-1/2 z-10 w-12 h-12 lg:w-14 lg:h-14 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded-full items-center justify-center transition-all group shadow-lg"
                       aria-label="Previous slide"
                     >
-                      <HiChevronLeft className="text-white text-xl sm:text-2xl lg:text-3xl group-hover:-translate-x-0.5 transition-transform" />
+                      <HiChevronLeft className="text-white text-2xl lg:text-3xl group-hover:-translate-x-0.5 transition-transform" />
                     </button>
                     <button
                       onClick={handleNext}
-                      className="absolute right-2 sm:right-4 lg:right-6 top-1/2 -translate-y-1/2 z-10 w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded-full flex items-center justify-center transition-all group shadow-lg"
+                      className="hidden md:flex absolute right-4 lg:right-6 top-1/2 -translate-y-1/2 z-10 w-12 h-12 lg:w-14 lg:h-14 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded-full items-center justify-center transition-all group shadow-lg"
                       aria-label="Next slide"
                     >
-                      <HiChevronRight className="text-white text-xl sm:text-2xl lg:text-3xl group-hover:translate-x-0.5 transition-transform" />
+                      <HiChevronRight className="text-white text-2xl lg:text-3xl group-hover:translate-x-0.5 transition-transform" />
                     </button>
                   </>
                 )}
