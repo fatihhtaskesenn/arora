@@ -26,14 +26,28 @@ const Lightbox = ({
   title = ''
 }) => {
   const [backgroundColor, setBackgroundColor] = useState<'black' | 'white'>('black');
+  const [hasError, setHasError] = useState(false);
   
-  // Validate image prop
-  const validImage = image && typeof image === 'string' && image.trim() !== '' ? image : null;
+  // Validate image prop with try-catch
+  let validImage = null;
+  try {
+    if (image && typeof image === 'string' && image.trim() !== '') {
+      validImage = image.trim();
+    }
+  } catch (error) {
+    console.error('Lightbox: Error validating image', error);
+    validImage = null;
+  }
   
   // Reset background color when image changes
   useEffect(() => {
-    if (validImage) {
-      setBackgroundColor('black');
+    try {
+      if (validImage) {
+        setBackgroundColor('black');
+        setHasError(false);
+      }
+    } catch (error) {
+      console.error('Lightbox: Error in useEffect', error);
     }
   }, [validImage]);
 
@@ -41,53 +55,79 @@ const Lightbox = ({
   useEffect(() => {
     if (!validImage) return;
 
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape' && onClose) {
-        onClose();
-      }
-      if (e.key === 'ArrowLeft' && hasPrevious && onPrevious) {
-        onPrevious();
-      }
-      if (e.key === 'ArrowRight' && hasNext && onNext) {
-        onNext();
-      }
-    };
+    try {
+      const handleKeyDown = (e) => {
+        try {
+          if (e.key === 'Escape' && onClose && typeof onClose === 'function') {
+            onClose();
+          }
+          if (e.key === 'ArrowLeft' && hasPrevious && onPrevious && typeof onPrevious === 'function') {
+            onPrevious();
+          }
+          if (e.key === 'ArrowRight' && hasNext && onNext && typeof onNext === 'function') {
+            onNext();
+          }
+        } catch (error) {
+          console.error('Lightbox: Error in keyboard handler', error);
+        }
+      };
 
-    window.addEventListener('keydown', handleKeyDown);
-    document.body.style.overflow = 'hidden';
+      window.addEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'hidden';
 
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = 'unset';
-    };
+      return () => {
+        try {
+          window.removeEventListener('keydown', handleKeyDown);
+          document.body.style.overflow = 'unset';
+        } catch (error) {
+          console.error('Lightbox: Error in cleanup', error);
+        }
+      };
+    } catch (error) {
+      console.error('Lightbox: Error setting up keyboard navigation', error);
+    }
   }, [validImage, onClose, onPrevious, onNext, hasPrevious, hasNext]);
 
-  // Don't render if no valid image
-  if (!validImage) {
+  // Don't render if no valid image or error
+  if (!validImage || hasError) {
     return null;
   }
 
-  return (
-    <AnimatePresence>
-      {validImage && (
-        <motion.div
-          className={`fixed inset-0 z-[9999] flex items-center justify-center backdrop-blur-sm transition-colors duration-300 ${
-            backgroundColor === 'white' ? 'bg-white' : 'bg-black/95'
-          }`}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={() => onClose && onClose()}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Image lightbox"
-        >
+  try {
+    return (
+      <AnimatePresence>
+        {validImage && (
+          <motion.div
+            className={`fixed inset-0 z-[9999] flex items-center justify-center backdrop-blur-sm transition-colors duration-300 ${
+              backgroundColor === 'white' ? 'bg-white' : 'bg-black/95'
+            }`}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={(e) => {
+              try {
+                e.stopPropagation();
+                if (onClose && typeof onClose === 'function') {
+                  onClose();
+                }
+              } catch (error) {
+                console.error('Lightbox: Error in onClick', error);
+              }
+            }}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Image lightbox"
+          >
           {/* Background Toggle Button */}
           <motion.button
             className="absolute top-3 left-3 sm:top-6 sm:left-6 z-10 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-full backdrop-blur-md transition-colors focus:outline-none focus:ring-2 focus:ring-white border border-white/20"
             onClick={(e) => {
-              e.stopPropagation();
-              setBackgroundColor(backgroundColor === 'black' ? 'white' : 'black');
+              try {
+                e.stopPropagation();
+                setBackgroundColor(backgroundColor === 'black' ? 'white' : 'black');
+              } catch (error) {
+                console.error('Lightbox: Error in background toggle', error);
+              }
             }}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -105,7 +145,16 @@ const Lightbox = ({
                 ? 'bg-black/10 hover:bg-black/20 text-black focus:ring-black' 
                 : 'bg-white/10 hover:bg-white/20 text-white focus:ring-white'
             }`}
-            onClick={() => onClose && onClose()}
+            onClick={(e) => {
+              try {
+                e.stopPropagation();
+                if (onClose && typeof onClose === 'function') {
+                  onClose();
+                }
+              } catch (error) {
+                console.error('Lightbox: Error closing', error);
+              }
+            }}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
             aria-label="Close lightbox"
@@ -122,8 +171,14 @@ const Lightbox = ({
                   : 'bg-white/10 hover:bg-white/20 text-white focus:ring-white'
               }`}
               onClick={(e) => {
-                e.stopPropagation();
-                if (onPrevious) onPrevious();
+                try {
+                  e.stopPropagation();
+                  if (onPrevious && typeof onPrevious === 'function') {
+                    onPrevious();
+                  }
+                } catch (error) {
+                  console.error('Lightbox: Error in previous', error);
+                }
               }}
               whileHover={{ scale: 1.1, x: -5 }}
               whileTap={{ scale: 0.95 }}
@@ -142,8 +197,14 @@ const Lightbox = ({
                   : 'bg-white/10 hover:bg-white/20 text-white focus:ring-white'
               }`}
               onClick={(e) => {
-                e.stopPropagation();
-                if (onNext) onNext();
+                try {
+                  e.stopPropagation();
+                  if (onNext && typeof onNext === 'function') {
+                    onNext();
+                  }
+                } catch (error) {
+                  console.error('Lightbox: Error in next', error);
+                }
               }}
               whileHover={{ scale: 1.1, x: 5 }}
               whileTap={{ scale: 0.95 }}
@@ -156,23 +217,46 @@ const Lightbox = ({
           {/* Image Container */}
           <motion.div
             className="relative max-w-7xl max-h-[90vh] mx-4"
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              try {
+                e.stopPropagation();
+              } catch (error) {
+                console.error('Lightbox: Error in stopPropagation', error);
+              }
+            }}
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
             transition={{ duration: 0.2 }}
           >
             <div className="relative w-full h-full">
-              <img
-                src={validImage}
-                alt={title || 'Project image'}
-                className="object-contain max-h-[85vh] w-auto mx-auto rounded-lg shadow-2xl"
-                style={{ maxWidth: '100%', height: 'auto' }}
-                onError={(e) => {
-                  console.error('Lightbox image load error:', validImage);
-                  e.target.style.display = 'none';
-                }}
-              />
+              {validImage && (
+                <img
+                  src={validImage}
+                  alt={title || 'Project image' || 'Image'}
+                  className="object-contain max-h-[85vh] w-auto mx-auto rounded-lg shadow-2xl"
+                  style={{ maxWidth: '100%', height: 'auto' }}
+                  onError={(e) => {
+                    try {
+                      console.error('Lightbox image load error:', validImage);
+                      setHasError(true);
+                      if (e && e.target) {
+                        e.target.style.display = 'none';
+                      }
+                    } catch (error) {
+                      console.error('Lightbox: Error handling image error', error);
+                      setHasError(true);
+                    }
+                  }}
+                  onLoad={() => {
+                    try {
+                      setHasError(false);
+                    } catch (error) {
+                      console.error('Lightbox: Error in onLoad', error);
+                    }
+                  }}
+                />
+              )}
             </div>
 
             {/* Title */}
@@ -217,7 +301,11 @@ const Lightbox = ({
         </motion.div>
       )}
     </AnimatePresence>
-  );
+    );
+  } catch (error) {
+    console.error('Lightbox: Render error', error);
+    return null;
+  }
 };
 
 export default Lightbox;

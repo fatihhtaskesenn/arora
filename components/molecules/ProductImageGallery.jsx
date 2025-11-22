@@ -47,7 +47,16 @@ export default function ProductImageGallery({ images = [], productName = '' }) {
           className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-neutral-800 to-neutral-900 shadow-2xl cursor-zoom-in group"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          onClick={() => setLightboxOpen(true)}
+          onClick={(e) => {
+            try {
+              e.stopPropagation();
+              if (images && images.length > 0 && images[currentIndex]) {
+                setLightboxOpen(true);
+              }
+            } catch (error) {
+              console.error('ProductImageGallery: Error opening lightbox', error);
+            }
+          }}
         >
           <div className="relative aspect-[4/3] bg-neutral-900 flex items-center justify-center">
             {images[currentIndex] && (

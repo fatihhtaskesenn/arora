@@ -125,7 +125,14 @@ const ProjectGallery = ({ projects = [], columns = 'auto' }) => {
             className="group relative overflow-hidden rounded-2xl bg-neutral-900 shadow-lg cursor-pointer"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            onClick={() => handleImageClick(index)}
+            onClick={(e) => {
+              try {
+                e.stopPropagation();
+                handleImageClick(index);
+              } catch (error) {
+                console.error('ProjectGallery: Error in onClick', error);
+              }
+            }}
           >
             {/* Image */}
             <div className="relative aspect-[4/3] overflow-hidden bg-neutral-800">

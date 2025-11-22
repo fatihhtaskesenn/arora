@@ -243,7 +243,14 @@ const ProjectsPreview = () => {
               className="group relative overflow-hidden rounded-2xl bg-neutral-900 shadow-2xl cursor-pointer"
               whileHover={{ scale: 1.03, y: -5 }}
               whileTap={{ scale: 0.98 }}
-              onClick={() => handleImageClick(index)}
+              onClick={(e) => {
+                try {
+                  e.stopPropagation();
+                  handleImageClick(index);
+                } catch (error) {
+                  console.error('ProjectsPreview: Error in onClick', error);
+                }
+              }}
             >
               {/* Image */}
               <div className="relative aspect-[4/3] overflow-hidden bg-neutral-800">
