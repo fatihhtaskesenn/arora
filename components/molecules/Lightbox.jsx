@@ -25,7 +25,7 @@ const Lightbox = ({
   hasNext = false,
   title = ''
 }) => {
-  const [backgroundColor, setBackgroundColor] = useState('black');
+  const [backgroundColor, setBackgroundColor] = useState('white');
   const [hasError, setHasError] = useState(false);
   
   // Validate image prop with try-catch
@@ -43,14 +43,14 @@ const Lightbox = ({
   useEffect(() => {
     try {
       if (validImage) {
-        setBackgroundColor('black');
+        setBackgroundColor('white');
         setHasError(false);
       }
     } catch (error) {
       console.error('Lightbox: Error in useEffect', error);
       // Fallback: ensure backgroundColor is valid
       try {
-        setBackgroundColor('black');
+        setBackgroundColor('white');
       } catch (resetError) {
         console.error('Lightbox: Error resetting color in useEffect', resetError);
       }
@@ -256,33 +256,49 @@ const Lightbox = ({
             exit={{ scale: 0.9, opacity: 0 }}
             transition={{ duration: 0.2 }}
           >
-            <div className="relative w-full h-full">
+            <div className="relative w-full h-full flex items-center justify-center">
               {validImage && (
-                <img
-                  src={validImage}
-                  alt={title || 'Project image' || 'Image'}
-                  className="object-contain max-h-[85vh] w-auto mx-auto rounded-lg shadow-2xl"
-                  style={{ maxWidth: '100%', height: 'auto' }}
-                  onError={(e) => {
-                    try {
-                      console.error('Lightbox image load error:', validImage);
-                      setHasError(true);
-                      if (e && e.target) {
-                        e.target.style.display = 'none';
+                <div 
+                  className="relative inline-block"
+                  style={{
+                    backgroundColor: backgroundColor === 'white' ? '#ffffff' : 'transparent',
+                    padding: backgroundColor === 'white' ? '24px' : '0',
+                    borderRadius: backgroundColor === 'white' ? '12px' : '0',
+                    boxShadow: backgroundColor === 'white' ? '0 20px 60px rgba(0, 0, 0, 0.15)' : 'none',
+                    border: backgroundColor === 'white' ? '1px solid rgba(0, 0, 0, 0.05)' : 'none'
+                  }}
+                >
+                  <img
+                    src={validImage}
+                    alt={title || 'Project image' || 'Image'}
+                    className="object-contain max-h-[85vh] w-auto mx-auto rounded-lg"
+                    style={{ 
+                      maxWidth: '100%', 
+                      height: 'auto',
+                      display: 'block',
+                      backgroundColor: 'transparent'
+                    }}
+                    onError={(e) => {
+                      try {
+                        console.error('Lightbox image load error:', validImage);
+                        setHasError(true);
+                        if (e && e.target) {
+                          e.target.style.display = 'none';
+                        }
+                      } catch (error) {
+                        console.error('Lightbox: Error handling image error', error);
+                        setHasError(true);
                       }
-                    } catch (error) {
-                      console.error('Lightbox: Error handling image error', error);
-                      setHasError(true);
-                    }
-                  }}
-                  onLoad={() => {
-                    try {
-                      setHasError(false);
-                    } catch (error) {
-                      console.error('Lightbox: Error in onLoad', error);
-                    }
-                  }}
-                />
+                    }}
+                    onLoad={() => {
+                      try {
+                        setHasError(false);
+                      } catch (error) {
+                        console.error('Lightbox: Error in onLoad', error);
+                      }
+                    }}
+                  />
+                </div>
               )}
             </div>
 
