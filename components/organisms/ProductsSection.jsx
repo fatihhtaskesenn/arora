@@ -191,9 +191,9 @@ const ProductsSection = () => {
           transition={{ delay: 0.5 }}
         >
           {[
-            { name: 'Taşlar & Mermerler', icon: '🪨', slug: 'stones-marbles' },
-            { name: 'Barbekü Setleri', icon: '🔥', slug: 'bbq' },
-            { name: 'Elektrikli Şömineler', icon: '🔥', slug: 'fireplaces' },
+            { name: 'Taşlar & Mermerler', icon: '💎', slug: 'stones-marbles' },
+            { name: 'Barbekü Setleri', icon: '🍖', slug: 'bbq' },
+            { name: 'Elektrikli Şömineler', icon: '🏠', slug: 'fireplaces' },
             { name: 'Taş Ürünler', icon: '🗿', slug: 'stone-products' },
           ].map((category, index) => (
             <Link key={index} href={`/products?category=${category.slug}`}>
