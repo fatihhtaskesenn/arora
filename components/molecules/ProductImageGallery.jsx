@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiChevronLeft, FiChevronRight, FiX } from 'react-icons/fi';
+import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import Lightbox from './Lightbox';
 
 export default function ProductImageGallery({ images = [], productName = '' }) {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -32,24 +33,6 @@ export default function ProductImageGallery({ images = [], productName = '' }) {
   const goToImage = (index) => {
     setCurrentIndex(index);
   };
-
-  // Keyboard navigation
-  useEffect(() => {
-    if (!lightboxOpen) return;
-
-    const handleKeyDown = (e) => {
-      if (e.key === 'ArrowLeft') {
-        goToPrevious();
-      } else if (e.key === 'ArrowRight') {
-        goToNext();
-      } else if (e.key === 'Escape') {
-        setLightboxOpen(false);
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [lightboxOpen, images.length]);
 
   return (
     <>
@@ -160,101 +143,22 @@ export default function ProductImageGallery({ images = [], productName = '' }) {
         )}
       </div>
 
-      {/* Lightbox Modal */}
-      <AnimatePresence>
-        {lightboxOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4"
-            onClick={() => setLightboxOpen(false)}
-          >
-            {/* Close Button */}
-            <button
-              onClick={() => setLightboxOpen(false)}
-              className="absolute top-4 right-4 p-3 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-full text-white transition-all z-10"
-              aria-label="Kapat"
-            >
-              <FiX className="h-6 w-6" />
-            </button>
-
-            {/* Main Image */}
-            <div 
-              className="relative w-full h-full flex items-center justify-center"
-              style={{
-                maxWidth: '100vw',
-                maxHeight: '90vh',
-                padding: '2rem',
-              }}
-            >
-              <AnimatePresence mode="wait">
-                <motion.img
-                  key={currentIndex}
-                  src={images[currentIndex]}
-                  alt={`${productName} - Görsel ${currentIndex + 1}`}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ duration: 0.3 }}
-                  className="object-contain"
-                  style={{
-                    maxWidth: '100%',
-                    maxHeight: '90vh',
-                    width: 'auto',
-                    height: 'auto',
-                    imageRendering: 'auto',
-                    backfaceVisibility: 'hidden',
-                    WebkitBackfaceVisibility: 'hidden',
-                    transform: 'translateZ(0)',
-                  }}
-                  onClick={(e) => e.stopPropagation()}
-                />
-              </AnimatePresence>
-
-              {/* Navigation Arrows */}
-              {images.length > 1 && (
-                <>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      goToPrevious();
-                    }}
-                    className="absolute left-4 p-3 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-full text-white transition-all"
-                    aria-label="Önceki görsel"
-                  >
-                    <FiChevronLeft className="h-8 w-8" />
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      goToNext();
-                    }}
-                    className="absolute right-4 p-3 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-full text-white transition-all"
-                    aria-label="Sonraki görsel"
-                  >
-                    <FiChevronRight className="h-8 w-8" />
-                  </button>
-                </>
-              )}
-
-              {/* Image Counter */}
-              {images.length > 1 && (
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white/10 backdrop-blur-sm px-6 py-3 rounded-full text-white">
-                  {currentIndex + 1} / {images.length}
-                </div>
-              )}
-            </div>
-
-            {/* Keyboard Navigation */}
-            {images.length > 1 && (
-              <div className="absolute bottom-20 left-1/2 -translate-x-1/2 text-white/50 text-sm">
-                ← → tuşları ile gezin
-              </div>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Lightbox */}
+      {lightboxOpen && images[currentIndex] && (
+        <Lightbox
+          image={images[currentIndex]}
+          title={`${productName}${images.length > 1 ? ` - Görsel ${currentIndex + 1}/${images.length}` : ''}`}
+          onClose={() => setLightboxOpen(false)}
+          onPrevious={images.length > 1 ? () => {
+            goToPrevious();
+          } : undefined}
+          onNext={images.length > 1 ? () => {
+            goToNext();
+          } : undefined}
+          hasPrevious={images.length > 1 && currentIndex > 0}
+          hasNext={images.length > 1 && currentIndex < images.length - 1}
+        />
+      )}
 
     </>
   );

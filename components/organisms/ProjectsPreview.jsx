@@ -312,10 +312,10 @@ const ProjectsPreview = () => {
       </div>
 
       {/* Lightbox */}
-      {selectedImageIndex !== null && (
+      {selectedImageIndex !== null && displayedProjects[selectedImageIndex]?.image && (
         <Lightbox
-          image={displayedProjects[selectedImageIndex]?.image}
-          title={displayedProjects[selectedImageIndex]?.title}
+          image={displayedProjects[selectedImageIndex].image}
+          title={displayedProjects[selectedImageIndex]?.title || `Proje ${selectedImageIndex + 1}`}
           onClose={handleClose}
           onPrevious={handlePrevious}
           onNext={handleNext}

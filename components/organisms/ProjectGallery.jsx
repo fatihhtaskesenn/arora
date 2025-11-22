@@ -194,10 +194,10 @@ const ProjectGallery = ({ projects = [], columns = 'auto' }) => {
       </motion.div>
 
       {/* Lightbox */}
-      {selectedImageIndex !== null && (
+      {selectedImageIndex !== null && projects[selectedImageIndex]?.image && (
         <Lightbox
-          image={projects[selectedImageIndex]?.image}
-          title={projects[selectedImageIndex]?.title}
+          image={projects[selectedImageIndex].image}
+          title={projects[selectedImageIndex]?.title || `Proje ${selectedImageIndex + 1}`}
           onClose={handleClose}
           onPrevious={handlePrevious}
           onNext={handleNext}
