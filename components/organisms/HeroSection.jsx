@@ -227,13 +227,13 @@ const HeroSection = () => {
       </div>
 
       <div className="container mx-auto px-0 sm:px-4 lg:px-8 py-0 sm:py-12 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 lg:gap-8 items-center max-w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 lg:gap-12 items-center max-w-full">
           {/* Left Content - Ultra Compact - Mobile: Bottom, Desktop: Left */}
           <motion.div
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
-            className="lg:col-span-2 text-left space-y-4 sm:space-y-5 relative z-20 order-2 lg:order-1 px-4 sm:px-0 pt-6 sm:pt-0 pb-6 sm:pb-0 bg-gradient-to-b from-slate-800/95 via-slate-900/95 to-slate-950/95 sm:bg-transparent"
+            className="lg:col-span-2 text-left space-y-4 sm:space-y-5 relative z-20 order-2 lg:order-1 px-4 sm:px-0 lg:pr-8 pt-6 sm:pt-0 pb-6 sm:pb-0 bg-gradient-to-b from-slate-800/95 via-slate-900/95 to-slate-950/95 sm:bg-transparent"
           >
             {/* Main Heading with Rotating Words */}
             <motion.div

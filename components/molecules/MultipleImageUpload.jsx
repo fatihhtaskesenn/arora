@@ -107,9 +107,46 @@ export default function MultipleImageUpload({
     }
   };
 
-  const handleRemoveImage = (index) => {
-    const newImages = images.filter((_, i) => i !== index);
-    onChange(newImages);
+  const handleRemoveImage = async (index) => {
+    try {
+      const imageToRemove = images[index];
+      
+      // Remove from array first (immediate UI update)
+      const newImages = images.filter((_, i) => i !== index);
+      onChange(newImages);
+      
+      // Try to delete from Supabase storage if it's a storage URL
+      if (imageToRemove && imageToRemove.includes('supabase.co/storage')) {
+        try {
+          // Extract file path from URL
+          const urlParts = imageToRemove.split('/storage/v1/object/public/');
+          if (urlParts.length === 2) {
+            const pathParts = urlParts[1].split('/');
+            const bucketName = pathParts[0];
+            const filePath = pathParts.slice(1).join('/');
+            
+            // Delete from storage
+            const { error: deleteError } = await supabase.storage
+              .from(bucketName)
+              .remove([filePath]);
+            
+            if (deleteError) {
+              console.warn('⚠️ Storage\'dan silme hatası (görsel listeden kaldırıldı):', deleteError);
+            } else {
+              console.log('✅ Görsel storage\'dan silindi');
+            }
+          }
+        } catch (storageError) {
+          console.warn('⚠️ Storage silme hatası (görsel listeden kaldırıldı):', storageError);
+          // Continue anyway - image is already removed from array
+        }
+      }
+    } catch (error) {
+      console.error('❌ Görsel silme hatası:', error);
+      // Still try to remove from array
+      const newImages = images.filter((_, i) => i !== index);
+      onChange(newImages);
+    }
   };
 
   const handleDragOver = (e) => {
@@ -222,12 +259,14 @@ export default function MultipleImageUpload({
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
+                    e.preventDefault();
                     handleRemoveImage(index);
                   }}
                   className="absolute top-2 right-2 p-1.5 bg-rose-500 text-white rounded-full 
-                           opacity-0 group-hover:opacity-100 transition-opacity
-                           hover:bg-rose-600"
+                           opacity-100 transition-opacity
+                           hover:bg-rose-600 shadow-lg z-10"
                   aria-label="Görseli kaldır"
+                  title="Görseli sil"
                 >
                   <FiX className="h-4 w-4" />
                 </button>

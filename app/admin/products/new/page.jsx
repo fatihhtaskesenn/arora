@@ -44,9 +44,9 @@ export default function NewProductPage() {
   const handleImagesChange = (images) => {
     setFormData((prev) => ({
       ...prev,
-      images: images,
+      images: Array.isArray(images) ? images : [],
       // Also set image_url for backward compatibility (first image)
-      image_url: images.length > 0 ? images[0] : '',
+      image_url: Array.isArray(images) && images.length > 0 ? images[0] : '',
     }));
   };
 
