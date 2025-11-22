@@ -25,7 +25,7 @@ const Lightbox = ({
   hasNext = false,
   title = ''
 }) => {
-  const [backgroundColor, setBackgroundColor] = useState<'black' | 'white'>('black');
+  const [backgroundColor, setBackgroundColor] = useState('black');
   const [hasError, setHasError] = useState(false);
   
   // Validate image prop with try-catch
@@ -48,6 +48,12 @@ const Lightbox = ({
       }
     } catch (error) {
       console.error('Lightbox: Error in useEffect', error);
+      // Fallback: ensure backgroundColor is valid
+      try {
+        setBackgroundColor('black');
+      } catch (resetError) {
+        console.error('Lightbox: Error resetting color in useEffect', resetError);
+      }
     }
   }, [validImage]);
 
@@ -101,6 +107,7 @@ const Lightbox = ({
             className={`fixed inset-0 z-[9999] flex items-center justify-center backdrop-blur-sm transition-colors duration-300 ${
               backgroundColor === 'white' ? 'bg-white' : 'bg-black/95'
             }`}
+            style={{ backgroundColor: backgroundColor === 'white' ? '#ffffff' : 'rgba(0, 0, 0, 0.95)' }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -120,13 +127,33 @@ const Lightbox = ({
           >
           {/* Background Toggle Button */}
           <motion.button
-            className="absolute top-3 left-3 sm:top-6 sm:left-6 z-10 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-full backdrop-blur-md transition-colors focus:outline-none focus:ring-2 focus:ring-white border border-white/20"
+            className={`absolute top-3 left-3 sm:top-6 sm:left-6 z-10 px-4 py-2 rounded-full backdrop-blur-md transition-colors focus:outline-none focus:ring-2 border ${
+              backgroundColor === 'white'
+                ? 'bg-black/10 hover:bg-black/20 text-black focus:ring-black border-black/20'
+                : 'bg-white/10 hover:bg-white/20 text-white focus:ring-white border-white/20'
+            }`}
             onClick={(e) => {
               try {
-                e.stopPropagation();
-                setBackgroundColor(backgroundColor === 'black' ? 'white' : 'black');
+                if (e) {
+                  e.stopPropagation();
+                  e.preventDefault();
+                }
+                // Ensure we only set 'black' or 'white'
+                const currentColor = backgroundColor === 'white' ? 'white' : 'black';
+                const newColor = currentColor === 'black' ? 'white' : 'black';
+                if (newColor === 'black' || newColor === 'white') {
+                  setBackgroundColor(newColor);
+                } else {
+                  setBackgroundColor('black');
+                }
               } catch (error) {
                 console.error('Lightbox: Error in background toggle', error);
+                // Fallback: reset to black on error
+                try {
+                  setBackgroundColor('black');
+                } catch (resetError) {
+                  console.error('Lightbox: Error resetting background', resetError);
+                }
               }
             }}
             whileHover={{ scale: 1.05 }}
