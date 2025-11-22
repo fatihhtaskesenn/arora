@@ -226,14 +226,14 @@ const HeroSection = () => {
         ))}
       </div>
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center max-w-full">
+      <div className="container mx-auto px-0 sm:px-4 lg:px-8 py-0 sm:py-12 relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 lg:gap-8 items-center max-w-full">
           {/* Left Content - Ultra Compact - Mobile: Bottom, Desktop: Left */}
           <motion.div
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
-            className="lg:col-span-2 text-left space-y-5 relative z-20 order-2 lg:order-1"
+            className="lg:col-span-2 text-left space-y-4 sm:space-y-5 relative z-20 order-2 lg:order-1 px-4 sm:px-0 pt-6 sm:pt-0 pb-6 sm:pb-0 bg-gradient-to-b from-slate-800/95 via-slate-900/95 to-slate-950/95 sm:bg-transparent"
           >
             {/* Main Heading with Rotating Words */}
             <motion.div
@@ -241,24 +241,24 @@ const HeroSection = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.6 }}
             >
-              <h1 className="text-3xl sm:text-4xl font-bold text-slate-100 mb-3 leading-[1.1]">
-                Hayalinizdeki
-                <br />
-                <AnimatePresence mode="wait">
-                  <motion.span
-                    key={currentWordIndex}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.5 }}
-                    className="inline-block bg-gradient-to-r from-emerald-400 via-emerald-500 to-rose-500 bg-clip-text text-transparent"
-                  >
-                    {rotatingWords[currentWordIndex]}
-                  </motion.span>
-                </AnimatePresence>
-                <br />
-                Oluşturuyoruz
-              </h1>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-100 mb-2 sm:mb-3 leading-[1.1]">
+              Hayalinizdeki
+              <br />
+              <AnimatePresence mode="wait">
+                <motion.span
+                  key={currentWordIndex}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.5 }}
+                  className="inline-block bg-gradient-to-r from-emerald-400 via-emerald-500 to-rose-500 bg-clip-text text-transparent"
+                >
+                  {rotatingWords[currentWordIndex]}
+                </motion.span>
+              </AnimatePresence>
+              <br />
+              Oluşturuyoruz
+            </h1>
             </motion.div>
 
             {/* Description */}
@@ -266,7 +266,7 @@ const HeroSection = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4, duration: 0.6 }}
-              className="text-sm text-slate-300 leading-relaxed"
+              className="text-xs sm:text-sm text-slate-300 leading-relaxed"
             >
               Doğal taşlar, elektrikli şömineler ve barbekü sistemleri ile 500+ başarılı projeye imza attık.
             </motion.p>
@@ -276,11 +276,11 @@ const HeroSection = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6, duration: 0.6 }}
-              className="flex flex-col gap-3"
+              className="flex flex-col gap-2 sm:gap-3"
             >
               <Link href="/products">
                 <motion.button
-                  className="w-full px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-bold rounded-full text-xs shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 group"
+                  className="w-full px-4 sm:px-5 py-2 sm:py-2.5 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-bold rounded-full text-xs shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 group"
                   whileHover={{ scale: 1.02, y: -2 }}
                   whileTap={{ scale: 0.98 }}
                 >
@@ -291,7 +291,7 @@ const HeroSection = () => {
               
               <Link href="/projects">
                 <motion.button
-                  className="w-full px-5 py-2.5 bg-slate-800 border-2 border-emerald-500 text-emerald-50 font-semibold rounded-full text-xs hover:bg-emerald-500 hover:text-white transition-all duration-300 flex items-center justify-center gap-2"
+                  className="w-full px-4 sm:px-5 py-2 sm:py-2.5 bg-slate-800/90 border-2 border-emerald-500 text-emerald-50 font-semibold rounded-full text-xs hover:bg-emerald-500 hover:text-white transition-all duration-300 flex items-center justify-center gap-2"
                   whileHover={{ scale: 1.02, y: -2 }}
                   whileTap={{ scale: 0.98 }}
                 >
@@ -305,7 +305,7 @@ const HeroSection = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.8, duration: 0.6 }}
-              className="flex gap-5 pt-3"
+              className="flex gap-4 sm:gap-5 pt-2 sm:pt-3"
             >
               {[
                 { number: '500+', label: 'Proje' },
@@ -313,7 +313,7 @@ const HeroSection = () => {
                 { number: '10+', label: 'Yıl' },
               ].map((stat, index) => (
                 <div key={index} className="text-left">
-                  <div className="text-xl font-bold text-emerald-400">{stat.number}</div>
+                  <div className="text-lg sm:text-xl font-bold text-emerald-400">{stat.number}</div>
                   <div className="text-[10px] text-slate-400">{stat.label}</div>
                 </div>
               ))}
@@ -327,7 +327,7 @@ const HeroSection = () => {
             transition={{ duration: 0.8, delay: 0.3 }}
             className="lg:col-span-10 relative z-10 w-full order-1 lg:order-2"
           >
-            <div className="relative w-full rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl sm:shadow-2xl border border-emerald-500/20 sm:border-emerald-500/30">
+            <div className="relative w-full rounded-none sm:rounded-2xl lg:rounded-3xl overflow-hidden shadow-xl sm:shadow-2xl border-0 sm:border border-emerald-500/20 sm:border-emerald-500/30">
               {/* Slider */}
               <div className="relative aspect-[4/3] sm:aspect-[16/9] lg:aspect-[21/9] w-full">
                 {loading || projects.length === 0 ? (
