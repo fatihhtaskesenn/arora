@@ -5,6 +5,16 @@ import { motion, AnimatePresence } from 'framer-motion';
 import ProductCard from '@/components/molecules/ProductCard';
 import { getAllProducts, getProductsByCategory as getProductsByCategorySupabase, categories } from '@/components/lib/productsService';
 import { HiSearch, HiFilter } from 'react-icons/hi';
+import { FireplaceIcon, BBQIcon, StoneProductsIcon, StonesMarblesIcon } from '@/components/atoms/CategoryIcons';
+
+// Icon mapping for categories
+const categoryIconMap = {
+  'stones-marbles': StonesMarblesIcon,
+  'bbq': BBQIcon,
+  'fireplaces': FireplaceIcon,
+  'stone-products': StoneProductsIcon,
+  'all': null,
+};
 
 export default function ProductsPage() {
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -152,22 +162,29 @@ export default function ProductsPage() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           {/* Categories */}
           <div className="flex flex-wrap items-center justify-center gap-3 mb-6">
-            {categories.map((category) => (
-              <motion.button
-                key={category.id}
-                onClick={() => setSelectedCategory(category.id)}
-                className={`px-6 py-3 rounded-full font-semibold transition-all duration-300 ${
-                  selectedCategory === category.id
-                    ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg'
-                    : 'bg-white/10 text-neutral-300 hover:bg-white/20'
-                }`}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <span className="mr-2">{category.icon}</span>
-                {category.name}
-              </motion.button>
-            ))}
+            {categories.map((category) => {
+              const IconComponent = categoryIconMap[category.id];
+              return (
+                <motion.button
+                  key={category.id}
+                  onClick={() => setSelectedCategory(category.id)}
+                  className={`px-6 py-3 rounded-full font-semibold transition-all duration-300 flex items-center gap-2 ${
+                    selectedCategory === category.id
+                      ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg'
+                      : 'bg-white/10 text-neutral-300 hover:bg-white/20'
+                  }`}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  {IconComponent ? (
+                    <IconComponent className="w-5 h-5" />
+                  ) : (
+                    <span className="text-lg">{category.icon}</span>
+                  )}
+                  {category.name}
+                </motion.button>
+              );
+            })}
           </div>
 
           {/* Sort Options */}

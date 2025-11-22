@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { HiArrowRight } from 'react-icons/hi';
 import ProductCard from '../molecules/ProductCard';
 import { getAllProducts } from '../lib/productsService';
+import { FireplaceIcon, BBQIcon, StoneProductsIcon, StonesMarblesIcon } from '../atoms/CategoryIcons';
 
 /**
  * ProductsSection Component - Featured products on homepage
@@ -191,10 +192,10 @@ const ProductsSection = () => {
           transition={{ delay: 0.5 }}
         >
           {[
-            { name: 'Taşlar & Mermerler', icon: '💎', slug: 'stones-marbles' },
-            { name: 'Barbekü Setleri', icon: '🍖', slug: 'bbq' },
-            { name: 'Elektrikli Şömineler', icon: '🏠', slug: 'fireplaces' },
-            { name: 'Taş Ürünler', icon: '🗿', slug: 'stone-products' },
+            { name: 'Taşlar & Mermerler', Icon: StonesMarblesIcon, slug: 'stones-marbles' },
+            { name: 'Barbekü Setleri', Icon: BBQIcon, slug: 'bbq' },
+            { name: 'Elektrikli Şömineler', Icon: FireplaceIcon, slug: 'fireplaces' },
+            { name: 'Taş Ürünler', Icon: StoneProductsIcon, slug: 'stone-products' },
           ].map((category, index) => (
             <Link key={index} href={`/products?category=${category.slug}`}>
               <motion.div
@@ -202,8 +203,8 @@ const ProductsSection = () => {
                 whileHover={{ scale: 1.05, y: -5 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <div className="text-4xl mb-3 group-hover:scale-110 transition-transform">
-                  {category.icon}
+                <div className="flex justify-center mb-3 group-hover:scale-110 transition-transform">
+                  <category.Icon className="w-16 h-16" />
                 </div>
                 <h3 className="text-white font-semibold group-hover:text-indigo-300 transition-colors">
                   {category.name}
