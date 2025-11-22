@@ -107,16 +107,16 @@ const ProductsSection = () => {
             viewport={{ once: true }}
             className="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-500/20 to-rose-600/20 border border-emerald-400/30 text-emerald-300 px-6 py-3 rounded-full text-sm font-semibold mb-6 backdrop-blur-sm"
           >
-            🪨
-            Taş & Mermer
+            ⭐
+            Öne Çıkan Ürünler
           </motion.div>
           
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-slate-100 via-emerald-400 to-rose-500 bg-clip-text text-transparent">
-            Doğal Taş Ürünlerimiz
+            Öne Çıkan Ürünlerimiz
           </h2>
           
           <p className="text-xl text-slate-300 leading-relaxed">
-            Yüksek kaliteli doğal taşlar ve mermerler ile mekanlarınıza değer katın.
+            En popüler ve kaliteli ürünlerimizi keşfedin.
             Her biri özenle seçilmiş, premium kalite ürünler.
           </p>
         </motion.div>

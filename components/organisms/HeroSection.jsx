@@ -228,12 +228,12 @@ const HeroSection = () => {
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center max-w-full">
-          {/* Left Content - Ultra Compact */}
+          {/* Left Content - Ultra Compact - Mobile: Bottom, Desktop: Left */}
           <motion.div
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
-            className="lg:col-span-2 text-left space-y-5 relative z-20"
+            className="lg:col-span-2 text-left space-y-5 relative z-20 order-2 lg:order-1"
           >
             {/* Main Heading with Rotating Words */}
             <motion.div
@@ -320,12 +320,12 @@ const HeroSection = () => {
             </motion.div>
           </motion.div>
 
-          {/* Right Content - ULTRA LARGE Project Slider (90% bigger = 40% + 50%) */}
+          {/* Right Content - ULTRA LARGE Project Slider - Mobile: Top, Desktop: Right */}
           <motion.div
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.3 }}
-            className="lg:col-span-10 relative z-10 w-full"
+            className="lg:col-span-10 relative z-10 w-full order-1 lg:order-2"
           >
             <div className="relative w-full rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl sm:shadow-2xl border border-emerald-500/20 sm:border-emerald-500/30">
               {/* Slider */}
