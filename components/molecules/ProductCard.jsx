@@ -12,11 +12,22 @@ import { config, getWhatsAppUrl } from '../lib/config';
  * @param {Object} product - Product data
  */
 const ProductCard = ({ product }) => {
+  // Safety check for product
+  if (!product) {
+    return null;
+  }
+
   const { id, name, image, category, inStock = true, badge } = product;
   const [isLiked, setIsLiked] = useState(false);
   
+  // Safety check for id
+  if (!id) {
+    console.error('ProductCard: Product ID is missing', product);
+    return null;
+  }
+  
   // WhatsApp mesaj şablonu ve URL
-  const whatsappMessage = config.whatsappMessages.product(name);
+  const whatsappMessage = config.whatsappMessages.product(name || 'Ürün');
   const whatsappUrl = getWhatsAppUrl(whatsappMessage);
 
   return (

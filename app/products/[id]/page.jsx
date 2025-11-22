@@ -34,30 +34,35 @@ export async function generateStaticParams() {
 }
 
 export default async function ProductDetailPage({ params }) {
-  // Next.js 16+ params can be async, handle both cases
-  let resolvedParams = params;
-  
-  // Check if params is a Promise (async)
-  if (params && typeof params.then === 'function') {
-    try {
-      resolvedParams = await params;
-    } catch (error) {
-      console.error('❌ Error resolving params:', error);
+  try {
+    // Next.js 15+ params can be async, handle both cases
+    let resolvedParams = params;
+    
+    // Check if params is a Promise (async)
+    if (params && typeof params.then === 'function') {
+      try {
+        resolvedParams = await params;
+      } catch (error) {
+        console.error('❌ Error resolving params:', error);
+        return <ProductDetailClient productId="" />;
+      }
+    }
+    
+    // Extract product ID safely
+    const productId = resolvedParams?.id 
+      ? String(resolvedParams.id).trim()
+      : '';
+    
+    if (!productId) {
+      console.error('❌ Product ID is missing in params:', resolvedParams);
       return <ProductDetailClient productId="" />;
     }
+    
+    return <ProductDetailClient productId={productId} />;
+  } catch (error) {
+    console.error('❌ Error in ProductDetailPage:', error);
+    return <ProductDetailClient productId="" />;
   }
-  
-  // Extract product ID safely
-  const productId = resolvedParams?.id 
-    ? String(resolvedParams.id)
-    : (resolvedParams?.id?.toString() || '');
-  
-  if (!productId) {
-    console.error('❌ Product ID is missing in params:', resolvedParams);
-    console.error('❌ Full params object:', JSON.stringify(resolvedParams, null, 2));
-  }
-  
-  return <ProductDetailClient productId={productId} />;
 }
 
 

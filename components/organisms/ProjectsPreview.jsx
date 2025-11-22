@@ -202,7 +202,13 @@ const ProjectsPreview = () => {
             whileInView="visible"
             viewport={{ once: true, amount: 0.1 }}
           >
-            {displayedProjects.map((project, index) => (
+            {displayedProjects.map((project, index) => {
+              // Safety check for project and image
+              if (!project || !project.image) {
+                return null;
+              }
+              
+              return (
             <motion.div
               key={index}
               variants={itemVariants}
@@ -284,7 +290,8 @@ const ProjectsPreview = () => {
                 <div className="w-3 h-3 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full shadow-lg" />
               </div>
             </motion.div>
-          ))}
+            );
+          })}
           </motion.div>
         )}
 

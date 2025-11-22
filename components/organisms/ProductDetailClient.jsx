@@ -41,13 +41,16 @@ export default function ProductDetailClient({ productId }) {
         setError(null);
         console.log('🔄 Fetching product:', productId);
         
-        if (!productId) {
+        // Convert productId to string
+        const productIdStr = productId ? String(productId).trim() : '';
+        
+        if (!productIdStr) {
           throw new Error('Ürün ID bulunamadı');
         }
 
         // Timeout protection (8 seconds)
         const productData = await Promise.race([
-          getProductById(productId),
+          getProductById(productIdStr),
           new Promise((_, reject) => 
             setTimeout(() => reject(new Error('Yükleme zaman aşımına uğradı')), 8000)
           )
@@ -81,7 +84,10 @@ export default function ProductDetailClient({ productId }) {
       }
     };
 
-    if (productId && productId.trim() !== '') {
+    // Convert productId to string and validate
+    const productIdStr = productId ? String(productId).trim() : '';
+    
+    if (productIdStr && productIdStr !== '') {
       fetchProduct();
     } else {
       setLoading(false);
@@ -166,13 +172,13 @@ export default function ProductDetailClient({ productId }) {
               <ProductImageGallery 
                 images={
                   // Priority: images array > image (single) > empty
-                  product.images && Array.isArray(product.images) && product.images.length > 0
+                  product?.images && Array.isArray(product.images) && product.images.length > 0
                     ? product.images
-                    : product.image
+                    : product?.image
                     ? [product.image]
                     : []
                 } 
-                productName={product.name}
+                productName={product?.name || 'Ürün'}
               />
               
               {/* Badges */}
@@ -194,24 +200,28 @@ export default function ProductDetailClient({ productId }) {
               transition={{ duration: 0.6, delay: 0.2 }}
             >
               {/* Category */}
-              <div className="mb-4">
-                <span className="inline-block px-4 py-2 bg-indigo-600/20 border border-indigo-500/30 rounded-full text-indigo-300 text-sm font-semibold">
-                  {product.category}
-                </span>
-              </div>
+              {product?.category && (
+                <div className="mb-4">
+                  <span className="inline-block px-4 py-2 bg-indigo-600/20 border border-indigo-500/30 rounded-full text-indigo-300 text-sm font-semibold">
+                    {product.category}
+                  </span>
+                </div>
+              )}
 
               {/* Product Name */}
               <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">
-                {product.name}
+                {product?.name || 'Ürün'}
               </h1>
 
               {/* Description */}
-              <p className="text-lg text-neutral-300 mb-8 leading-relaxed">
-                {product.description}
-              </p>
+              {product?.description && (
+                <p className="text-lg text-neutral-300 mb-8 leading-relaxed">
+                  {product.description}
+                </p>
+              )}
 
               {/* Features */}
-              {product.features && product.features.length > 0 && (
+              {product?.features && Array.isArray(product.features) && product.features.length > 0 && (
                 <div className="mb-8">
                   <h3 className="text-xl font-bold text-white mb-4">Özellikler</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -235,7 +245,7 @@ export default function ProductDetailClient({ productId }) {
 
               {/* Stock Info */}
               <div className="mb-8">
-                {product.inStock ? (
+                {product?.inStock !== false ? (
                   <div className="flex items-center gap-2 text-emerald-400">
                     <HiCheck size={20} />
                     <span className="font-semibold">Stokta mevcut</span>
@@ -253,12 +263,12 @@ export default function ProductDetailClient({ productId }) {
                 target="_blank"
                 rel="noopener noreferrer"
                 className={`w-full py-5 px-8 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 transition-all ${
-                  product.inStock
+                  product?.inStock !== false
                     ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-700 hover:to-emerald-700 shadow-xl hover:shadow-green-500/50'
                     : 'bg-neutral-700 text-neutral-400 cursor-not-allowed pointer-events-none'
                 }`}
-                whileHover={product.inStock ? { scale: 1.02 } : {}}
-                whileTap={product.inStock ? { scale: 0.98 } : {}}
+                whileHover={product?.inStock !== false ? { scale: 1.02 } : {}}
+                whileTap={product?.inStock !== false ? { scale: 0.98 } : {}}
               >
                 <FaWhatsapp size={28} />
                 <span>WhatsApp ile İletişime Geç</span>

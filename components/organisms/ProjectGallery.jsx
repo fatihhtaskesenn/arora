@@ -78,7 +78,13 @@ const ProjectGallery = ({ projects = [], columns = 'auto' }) => {
         whileInView="visible"
         viewport={{ once: true, amount: 0.1 }}
       >
-        {projects.map((project, index) => (
+        {projects.map((project, index) => {
+          // Safety check for project and image
+          if (!project || !project.image) {
+            return null;
+          }
+          
+          return (
           <motion.div
             key={index}
             variants={itemVariants}
@@ -190,7 +196,8 @@ const ProjectGallery = ({ projects = [], columns = 'auto' }) => {
               </motion.div>
             </div>
           </motion.div>
-        ))}
+          );
+        })}
       </motion.div>
 
       {/* Lightbox */}
