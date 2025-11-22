@@ -14,9 +14,39 @@ const ProjectGallery = ({ projects = [], columns = 'auto' }) => {
   const [selectedImageIndex, setSelectedImageIndex] = useState(null);
   const [loadedImages, setLoadedImages] = useState({});
 
+  // Safety check for projects
+  if (!projects || !Array.isArray(projects)) {
+    console.warn('ProjectGallery: Invalid projects prop', projects);
+    return null;
+  }
+
   const handleImageClick = (index) => {
-    if (index >= 0 && index < projects.length && projects[index]?.image) {
+    try {
+      if (!projects || !Array.isArray(projects) || projects.length === 0) {
+        console.warn('ProjectGallery: No projects available');
+        return;
+      }
+      
+      if (index < 0 || index >= projects.length) {
+        console.warn('ProjectGallery: Invalid index', index);
+        return;
+      }
+      
+      const project = projects[index];
+      if (!project) {
+        console.warn('ProjectGallery: Project not found at index', index);
+        return;
+      }
+      
+      if (!project.image || typeof project.image !== 'string' || project.image.trim() === '') {
+        console.warn('ProjectGallery: Invalid image URL', project);
+        return;
+      }
+      
+      console.log('ProjectGallery: Opening lightbox for project', index, project);
       setSelectedImageIndex(index);
+    } catch (error) {
+      console.error('ProjectGallery: Error in handleImageClick', error);
     }
   };
 
@@ -205,15 +235,20 @@ const ProjectGallery = ({ projects = [], columns = 'auto' }) => {
       </motion.div>
 
       {/* Lightbox */}
-      {selectedImageIndex !== null && projects[selectedImageIndex]?.image && (
+      {selectedImageIndex !== null && 
+       selectedImageIndex >= 0 && 
+       selectedImageIndex < projects.length && 
+       projects[selectedImageIndex] && 
+       projects[selectedImageIndex].image && 
+       typeof projects[selectedImageIndex].image === 'string' && (
         <Lightbox
-          image={projects[selectedImageIndex].image}
+          image={String(projects[selectedImageIndex].image)}
           title={projects[selectedImageIndex]?.title || `Proje ${selectedImageIndex + 1}`}
           onClose={handleClose}
-          onPrevious={handlePrevious}
-          onNext={handleNext}
-          hasPrevious={selectedImageIndex > 0}
-          hasNext={selectedImageIndex < projects.length - 1}
+          onPrevious={projects.length > 1 ? handlePrevious : undefined}
+          onNext={projects.length > 1 ? handleNext : undefined}
+          hasPrevious={projects.length > 1 && selectedImageIndex > 0}
+          hasNext={projects.length > 1 && selectedImageIndex < projects.length - 1}
         />
       )}
     </>

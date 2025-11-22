@@ -27,16 +27,19 @@ const Lightbox = ({
 }) => {
   const [backgroundColor, setBackgroundColor] = useState<'black' | 'white'>('black');
   
+  // Validate image prop
+  const validImage = image && typeof image === 'string' && image.trim() !== '' ? image : null;
+  
   // Reset background color when image changes
   useEffect(() => {
-    if (image) {
+    if (validImage) {
       setBackgroundColor('black');
     }
-  }, [image]);
+  }, [validImage]);
 
   // Keyboard navigation
   useEffect(() => {
-    if (!image) return;
+    if (!validImage) return;
 
     const handleKeyDown = (e) => {
       if (e.key === 'Escape' && onClose) {
@@ -57,11 +60,16 @@ const Lightbox = ({
       window.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = 'unset';
     };
-  }, [image, onClose, onPrevious, onNext, hasPrevious, hasNext]);
+  }, [validImage, onClose, onPrevious, onNext, hasPrevious, hasNext]);
+
+  // Don't render if no valid image
+  if (!validImage) {
+    return null;
+  }
 
   return (
     <AnimatePresence>
-      {image && (
+      {validImage && (
         <motion.div
           className={`fixed inset-0 z-[9999] flex items-center justify-center backdrop-blur-sm transition-colors duration-300 ${
             backgroundColor === 'white' ? 'bg-white' : 'bg-black/95'
@@ -155,14 +163,16 @@ const Lightbox = ({
             transition={{ duration: 0.2 }}
           >
             <div className="relative w-full h-full">
-              {image && (
-                <img
-                  src={image}
-                  alt={title || 'Project image'}
-                  className="object-contain max-h-[85vh] w-auto mx-auto rounded-lg shadow-2xl"
-                  style={{ maxWidth: '100%', height: 'auto' }}
-                />
-              )}
+              <img
+                src={validImage}
+                alt={title || 'Project image'}
+                className="object-contain max-h-[85vh] w-auto mx-auto rounded-lg shadow-2xl"
+                style={{ maxWidth: '100%', height: 'auto' }}
+                onError={(e) => {
+                  console.error('Lightbox image load error:', validImage);
+                  e.target.style.display = 'none';
+                }}
+              />
             </div>
 
             {/* Title */}

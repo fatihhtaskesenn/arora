@@ -71,8 +71,32 @@ const ProjectsPreview = () => {
   };
 
   const handleImageClick = (index) => {
-    if (index >= 0 && index < displayedProjects.length && displayedProjects[index]?.image) {
+    try {
+      if (!displayedProjects || !Array.isArray(displayedProjects) || displayedProjects.length === 0) {
+        console.warn('ProjectsPreview: No projects available');
+        return;
+      }
+      
+      if (index < 0 || index >= displayedProjects.length) {
+        console.warn('ProjectsPreview: Invalid index', index);
+        return;
+      }
+      
+      const project = displayedProjects[index];
+      if (!project) {
+        console.warn('ProjectsPreview: Project not found at index', index);
+        return;
+      }
+      
+      if (!project.image || typeof project.image !== 'string' || project.image.trim() === '') {
+        console.warn('ProjectsPreview: Invalid image URL', project);
+        return;
+      }
+      
+      console.log('ProjectsPreview: Opening lightbox for project', index, project);
       setSelectedImageIndex(index);
+    } catch (error) {
+      console.error('ProjectsPreview: Error in handleImageClick', error);
     }
   };
 
@@ -323,15 +347,20 @@ const ProjectsPreview = () => {
       </div>
 
       {/* Lightbox */}
-      {selectedImageIndex !== null && displayedProjects[selectedImageIndex]?.image && (
+      {selectedImageIndex !== null && 
+       selectedImageIndex >= 0 && 
+       selectedImageIndex < displayedProjects.length && 
+       displayedProjects[selectedImageIndex] && 
+       displayedProjects[selectedImageIndex].image && 
+       typeof displayedProjects[selectedImageIndex].image === 'string' && (
         <Lightbox
-          image={displayedProjects[selectedImageIndex].image}
+          image={String(displayedProjects[selectedImageIndex].image)}
           title={displayedProjects[selectedImageIndex]?.title || `Proje ${selectedImageIndex + 1}`}
           onClose={handleClose}
-          onPrevious={handlePrevious}
-          onNext={handleNext}
-          hasPrevious={selectedImageIndex > 0}
-          hasNext={selectedImageIndex < displayedProjects.length - 1}
+          onPrevious={displayedProjects.length > 1 ? handlePrevious : undefined}
+          onNext={displayedProjects.length > 1 ? handleNext : undefined}
+          hasPrevious={displayedProjects.length > 1 && selectedImageIndex > 0}
+          hasNext={displayedProjects.length > 1 && selectedImageIndex < displayedProjects.length - 1}
         />
       )}
     </section>
