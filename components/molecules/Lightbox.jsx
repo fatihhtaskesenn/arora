@@ -39,9 +39,15 @@ const Lightbox = ({
     if (!image) return;
 
     const handleKeyDown = (e) => {
-      if (e.key === 'Escape') onClose();
-      if (e.key === 'ArrowLeft' && hasPrevious) onPrevious();
-      if (e.key === 'ArrowRight' && hasNext) onNext();
+      if (e.key === 'Escape' && onClose) {
+        onClose();
+      }
+      if (e.key === 'ArrowLeft' && hasPrevious && onPrevious) {
+        onPrevious();
+      }
+      if (e.key === 'ArrowRight' && hasNext && onNext) {
+        onNext();
+      }
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -63,7 +69,7 @@ const Lightbox = ({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          onClick={onClose}
+          onClick={() => onClose && onClose()}
           role="dialog"
           aria-modal="true"
           aria-label="Image lightbox"
@@ -91,7 +97,7 @@ const Lightbox = ({
                 ? 'bg-black/10 hover:bg-black/20 text-black focus:ring-black' 
                 : 'bg-white/10 hover:bg-white/20 text-white focus:ring-white'
             }`}
-            onClick={onClose}
+            onClick={() => onClose && onClose()}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
             aria-label="Close lightbox"
@@ -109,7 +115,7 @@ const Lightbox = ({
               }`}
               onClick={(e) => {
                 e.stopPropagation();
-                onPrevious();
+                if (onPrevious) onPrevious();
               }}
               whileHover={{ scale: 1.1, x: -5 }}
               whileTap={{ scale: 0.95 }}
@@ -129,7 +135,7 @@ const Lightbox = ({
               }`}
               onClick={(e) => {
                 e.stopPropagation();
-                onNext();
+                if (onNext) onNext();
               }}
               whileHover={{ scale: 1.1, x: 5 }}
               whileTap={{ scale: 0.95 }}
@@ -149,15 +155,14 @@ const Lightbox = ({
             transition={{ duration: 0.2 }}
           >
             <div className="relative w-full h-full">
-              <Image
-                src={image}
-                alt={title || 'Project image'}
-                width={1200}
-                height={800}
-                className="object-contain max-h-[85vh] w-auto mx-auto rounded-lg shadow-2xl"
-                quality={95}
-                priority
-              />
+              {image && (
+                <img
+                  src={image}
+                  alt={title || 'Project image'}
+                  className="object-contain max-h-[85vh] w-auto mx-auto rounded-lg shadow-2xl"
+                  style={{ maxWidth: '100%', height: 'auto' }}
+                />
+              )}
             </div>
 
             {/* Title */}

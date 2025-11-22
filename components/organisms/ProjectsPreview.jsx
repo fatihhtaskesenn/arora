@@ -71,7 +71,9 @@ const ProjectsPreview = () => {
   };
 
   const handleImageClick = (index) => {
-    setSelectedImageIndex(index);
+    if (index >= 0 && index < displayedProjects.length && displayedProjects[index]?.image) {
+      setSelectedImageIndex(index);
+    }
   };
 
   const handleClose = () => {
@@ -79,12 +81,14 @@ const ProjectsPreview = () => {
   };
 
   const handlePrevious = () => {
+    if (displayedProjects.length === 0) return;
     setSelectedImageIndex((prev) => 
       prev > 0 ? prev - 1 : displayedProjects.length - 1
     );
   };
 
   const handleNext = () => {
+    if (displayedProjects.length === 0) return;
     setSelectedImageIndex((prev) => 
       prev < displayedProjects.length - 1 ? prev + 1 : 0
     );

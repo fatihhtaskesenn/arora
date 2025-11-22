@@ -23,15 +23,19 @@ export default function ProductImageGallery({ images = [], productName = '' }) {
   }
 
   const goToPrevious = () => {
+    if (images.length === 0) return;
     setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
   };
 
   const goToNext = () => {
+    if (images.length === 0) return;
     setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
   };
 
   const goToImage = (index) => {
-    setCurrentIndex(index);
+    if (index >= 0 && index < images.length) {
+      setCurrentIndex(index);
+    }
   };
 
   return (
@@ -46,25 +50,31 @@ export default function ProductImageGallery({ images = [], productName = '' }) {
           onClick={() => setLightboxOpen(true)}
         >
           <div className="relative aspect-[4/3] bg-neutral-900 flex items-center justify-center">
-            <AnimatePresence mode="wait">
-              <motion.img
-                key={currentIndex}
-                src={images[currentIndex]}
-                alt={`${productName} - Görsel ${currentIndex + 1}`}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                className="w-full h-full object-contain"
-                style={{
-                  imageRendering: 'auto',
-                  backfaceVisibility: 'hidden',
-                  WebkitBackfaceVisibility: 'hidden',
-                }}
-                loading="eager"
-                fetchPriority="high"
-              />
-            </AnimatePresence>
+            {images[currentIndex] && (
+              <AnimatePresence mode="wait">
+                <motion.img
+                  key={currentIndex}
+                  src={images[currentIndex]}
+                  alt={`${productName || 'Ürün'} - Görsel ${currentIndex + 1}`}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="w-full h-full object-contain"
+                  style={{
+                    imageRendering: 'auto',
+                    backfaceVisibility: 'hidden',
+                    WebkitBackfaceVisibility: 'hidden',
+                  }}
+                  loading="eager"
+                  fetchPriority="high"
+                  onError={(e) => {
+                    console.error('Image load error:', images[currentIndex]);
+                    e.target.style.display = 'none';
+                  }}
+                />
+              </AnimatePresence>
+            )}
 
             {/* Navigation Arrows (if more than 1 image) */}
             {images.length > 1 && (
@@ -144,17 +154,13 @@ export default function ProductImageGallery({ images = [], productName = '' }) {
       </div>
 
       {/* Lightbox */}
-      {lightboxOpen && images[currentIndex] && (
+      {lightboxOpen && images && images.length > 0 && images[currentIndex] && (
         <Lightbox
           image={images[currentIndex]}
-          title={`${productName}${images.length > 1 ? ` - Görsel ${currentIndex + 1}/${images.length}` : ''}`}
+          title={`${productName || 'Ürün'}${images.length > 1 ? ` - Görsel ${currentIndex + 1}/${images.length}` : ''}`}
           onClose={() => setLightboxOpen(false)}
-          onPrevious={images.length > 1 ? () => {
-            goToPrevious();
-          } : undefined}
-          onNext={images.length > 1 ? () => {
-            goToNext();
-          } : undefined}
+          onPrevious={images.length > 1 ? goToPrevious : undefined}
+          onNext={images.length > 1 ? goToNext : undefined}
           hasPrevious={images.length > 1 && currentIndex > 0}
           hasNext={images.length > 1 && currentIndex < images.length - 1}
         />

@@ -15,7 +15,9 @@ const ProjectGallery = ({ projects = [], columns = 'auto' }) => {
   const [loadedImages, setLoadedImages] = useState({});
 
   const handleImageClick = (index) => {
-    setSelectedImageIndex(index);
+    if (index >= 0 && index < projects.length && projects[index]?.image) {
+      setSelectedImageIndex(index);
+    }
   };
 
   const handleClose = () => {
@@ -23,12 +25,14 @@ const ProjectGallery = ({ projects = [], columns = 'auto' }) => {
   };
 
   const handlePrevious = () => {
+    if (projects.length === 0) return;
     setSelectedImageIndex((prev) => 
       prev > 0 ? prev - 1 : projects.length - 1
     );
   };
 
   const handleNext = () => {
+    if (projects.length === 0) return;
     setSelectedImageIndex((prev) => 
       prev < projects.length - 1 ? prev + 1 : 0
     );
