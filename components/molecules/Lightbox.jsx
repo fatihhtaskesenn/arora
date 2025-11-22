@@ -59,19 +59,19 @@ const Lightbox = ({
         >
           {/* Close Button */}
           <motion.button
-            className="absolute top-6 right-6 z-10 p-3 bg-white/10 hover:bg-white/20 rounded-full text-white backdrop-blur-md transition-colors focus:outline-none focus:ring-2 focus:ring-white"
+            className="absolute top-3 right-3 sm:top-6 sm:right-6 z-10 p-2 sm:p-3 bg-white/10 hover:bg-white/20 rounded-full text-white backdrop-blur-md transition-colors focus:outline-none focus:ring-2 focus:ring-white"
             onClick={onClose}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
             aria-label="Close lightbox"
           >
-            <HiX size={28} />
+            <HiX size={20} className="sm:w-7 sm:h-7" />
           </motion.button>
 
           {/* Previous Button */}
           {hasPrevious && (
             <motion.button
-              className="absolute left-6 top-1/2 -translate-y-1/2 z-10 p-4 bg-white/10 hover:bg-white/20 rounded-full text-white backdrop-blur-md transition-colors focus:outline-none focus:ring-2 focus:ring-white"
+              className="absolute left-2 sm:left-6 top-1/2 -translate-y-1/2 z-10 p-2 sm:p-4 bg-white/10 hover:bg-white/20 rounded-full text-white backdrop-blur-md transition-colors focus:outline-none focus:ring-2 focus:ring-white"
               onClick={(e) => {
                 e.stopPropagation();
                 onPrevious();
@@ -80,14 +80,14 @@ const Lightbox = ({
               whileTap={{ scale: 0.95 }}
               aria-label="Previous image"
             >
-              <HiChevronLeft size={32} />
+              <HiChevronLeft size={24} className="sm:w-8 sm:h-8" />
             </motion.button>
           )}
 
           {/* Next Button */}
           {hasNext && (
             <motion.button
-              className="absolute right-6 top-1/2 -translate-y-1/2 z-10 p-4 bg-white/10 hover:bg-white/20 rounded-full text-white backdrop-blur-md transition-colors focus:outline-none focus:ring-2 focus:ring-white"
+              className="absolute right-2 sm:right-6 top-1/2 -translate-y-1/2 z-10 p-2 sm:p-4 bg-white/10 hover:bg-white/20 rounded-full text-white backdrop-blur-md transition-colors focus:outline-none focus:ring-2 focus:ring-white"
               onClick={(e) => {
                 e.stopPropagation();
                 onNext();
@@ -96,7 +96,7 @@ const Lightbox = ({
               whileTap={{ scale: 0.95 }}
               aria-label="Next image"
             >
-              <HiChevronRight size={32} />
+              <HiChevronRight size={24} className="sm:w-8 sm:h-8" />
             </motion.button>
           )}
 

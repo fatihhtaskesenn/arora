@@ -52,8 +52,8 @@ const Navbar = () => {
     <motion.nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b ${
         isScrolled
-          ? 'bg-rose-900/95 backdrop-blur-2xl shadow-lg shadow-rose-950/50 py-4 border-rose-800'
-          : 'bg-rose-800/95 backdrop-blur-md py-6 border-rose-700'
+          ? 'bg-rose-900/95 backdrop-blur-2xl shadow-lg shadow-rose-950/50 py-3 md:py-4 border-rose-800'
+          : 'bg-rose-800/95 backdrop-blur-md py-4 md:py-6 border-rose-700'
       }`}
       initial={{ y: -100 }}
       animate={{ y: 0 }}
@@ -131,30 +131,41 @@ const Navbar = () => {
             
             {/* Menu Content */}
             <motion.div
-              className="fixed top-[88px] left-0 right-0 bg-rose-900/98 backdrop-blur-xl shadow-xl border-t border-rose-700 z-40 md:hidden max-h-[calc(100vh-88px)] overflow-y-auto"
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
+              className="fixed top-0 left-0 right-0 bg-rose-900/98 backdrop-blur-xl shadow-xl border-b border-rose-700 z-40 md:hidden h-screen overflow-y-auto"
+              initial={{ opacity: 0, x: '100%' }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: '100%' }}
+              transition={{ duration: 0.3, ease: 'easeInOut' }}
             >
-              <div className="container mx-auto px-4 sm:px-6 py-6">
+              <div className="container mx-auto px-4 sm:px-6 py-6 pt-20">
+                {/* Close Button */}
+                <div className="flex justify-end mb-6">
+                  <button
+                    onClick={toggleMobileMenu}
+                    className="p-2 text-rose-50 hover:text-emerald-300 transition-colors"
+                    aria-label="Menüyü Kapat"
+                  >
+                    <HiX size={24} />
+                  </button>
+                </div>
+
                 {/* Navigation Links */}
-                <div className="flex flex-col gap-3 mb-6">
+                <div className="flex flex-col gap-2 mb-6">
                   {navLinks.map((link, index) => (
                     <motion.div
                       key={link.href}
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.1 }}
+                      transition={{ delay: index * 0.05 }}
                     >
                       <Link
                         href={link.href}
-                        className="block py-5 px-6 text-xl font-bold text-white hover:text-emerald-300 bg-rose-800/50 hover:bg-rose-700/70 rounded-2xl transition-all duration-200 border border-rose-700/50 hover:border-emerald-500/50 shadow-lg"
+                        className="block py-3 px-4 text-base font-semibold text-white hover:text-emerald-300 bg-rose-800/50 hover:bg-rose-700/70 rounded-xl transition-all duration-200 border border-rose-700/50 hover:border-emerald-500/50"
                         onClick={toggleMobileMenu}
                       >
                         <div className="flex items-center justify-between">
                           <span>{link.label}</span>
-                          <svg className="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                           </svg>
                         </div>
@@ -166,7 +177,7 @@ const Navbar = () => {
                 {/* Mobile Actions */}
                 <div className="flex flex-col gap-3 pt-4 border-t border-rose-700/50">
                   <Link href="/contact" onClick={toggleMobileMenu} className="w-full">
-                    <button className="w-full px-8 py-5 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-bold text-lg rounded-full shadow-xl hover:shadow-2xl hover:from-emerald-600 hover:to-emerald-700 transition-all duration-200">
+                    <button className="w-full px-6 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-semibold text-base rounded-full shadow-lg hover:shadow-xl hover:from-emerald-600 hover:to-emerald-700 transition-all duration-200">
                       İletişime Geç
                     </button>
                   </Link>

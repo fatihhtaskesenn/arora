@@ -72,7 +72,7 @@ const ProjectGallery = ({ projects = [], columns = 'auto' }) => {
   return (
     <>
       <motion.div
-        className={`grid ${gridColsClass} gap-6`}
+        className={`grid ${gridColsClass} gap-4 sm:gap-6`}
         variants={containerVariants}
         initial="hidden"
         whileInView="visible"
@@ -127,14 +127,14 @@ const ProjectGallery = ({ projects = [], columns = 'auto' }) => {
                 whileHover={{ opacity: 1 }}
                 transition={{ duration: 0.3 }}
               >
-                <div className="text-center px-6">
+                <div className="text-center px-4 sm:px-6">
                   <motion.div
                     initial={{ scale: 0 }}
                     whileHover={{ scale: 1 }}
                     transition={{ delay: 0.1 }}
                   >
                     <svg
-                      className="w-16 h-16 mx-auto mb-4 text-white"
+                      className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 mx-auto mb-2 sm:mb-4 text-white"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -147,7 +147,7 @@ const ProjectGallery = ({ projects = [], columns = 'auto' }) => {
                       />
                     </svg>
                   </motion.div>
-                  <p className="text-white font-semibold text-lg">
+                  <p className="text-white font-semibold text-sm sm:text-base md:text-lg">
                     Detayları Gör
                   </p>
                 </div>
@@ -156,9 +156,9 @@ const ProjectGallery = ({ projects = [], columns = 'auto' }) => {
 
             {/* Project Info */}
             {project.title && (
-              <div className="absolute bottom-0 left-0 right-0 p-6 z-10">
+              <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 md:p-6 z-10">
                 <motion.h3
-                  className="text-white font-bold text-xl mb-2"
+                  className="text-white font-bold text-base sm:text-lg md:text-xl mb-1 sm:mb-2"
                   initial={{ opacity: 0, y: 10 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 }}
@@ -167,7 +167,7 @@ const ProjectGallery = ({ projects = [], columns = 'auto' }) => {
                 </motion.h3>
                 {project.description && (
                   <motion.p
-                    className="text-white/80 text-sm line-clamp-2"
+                    className="text-white/80 text-xs sm:text-sm line-clamp-2"
                     initial={{ opacity: 0, y: 10 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
@@ -179,9 +179,9 @@ const ProjectGallery = ({ projects = [], columns = 'auto' }) => {
             )}
 
             {/* Badge */}
-            <div className="absolute top-4 right-4 z-10">
+            <div className="absolute top-2 sm:top-4 right-2 sm:right-4 z-10">
               <motion.div
-                className="bg-white/20 backdrop-blur-md px-4 py-2 rounded-full text-white text-xs font-semibold"
+                className="bg-white/20 backdrop-blur-md px-2 sm:px-3 md:px-4 py-1 sm:py-1.5 md:py-2 rounded-full text-white text-[10px] sm:text-xs font-semibold"
                 initial={{ opacity: 0, scale: 0 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.3 }}
