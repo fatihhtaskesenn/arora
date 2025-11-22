@@ -122,7 +122,7 @@ const Navbar = () => {
           <>
             {/* Backdrop */}
             <motion.div
-              className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 md:hidden"
+              className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 md:hidden"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -131,7 +131,7 @@ const Navbar = () => {
             
             {/* Menu Content */}
             <motion.div
-              className="fixed top-0 left-0 right-0 bg-rose-900/98 backdrop-blur-xl shadow-xl border-b border-rose-700 z-40 md:hidden h-screen overflow-y-auto"
+              className="fixed top-0 left-0 right-0 bg-gradient-to-b from-rose-950 via-rose-900 to-rose-950 shadow-2xl border-b border-rose-800 z-40 md:hidden h-screen overflow-y-auto"
               initial={{ opacity: 0, x: '100%' }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: '100%' }}
@@ -160,7 +160,7 @@ const Navbar = () => {
                     >
                       <Link
                         href={link.href}
-                        className="block py-3 px-4 text-base font-semibold text-white hover:text-emerald-300 bg-rose-800/50 hover:bg-rose-700/70 rounded-xl transition-all duration-200 border border-rose-700/50 hover:border-emerald-500/50"
+                        className="block py-3 px-4 text-base font-semibold text-white hover:text-emerald-300 bg-rose-800/80 hover:bg-rose-700/90 rounded-xl transition-all duration-200 border border-rose-700/70 hover:border-emerald-500/70 shadow-lg"
                         onClick={toggleMobileMenu}
                       >
                         <div className="flex items-center justify-between">
@@ -175,9 +175,9 @@ const Navbar = () => {
                 </div>
 
                 {/* Mobile Actions */}
-                <div className="flex flex-col gap-3 pt-4 border-t border-rose-700/50">
+                <div className="flex flex-col gap-3 pt-4 border-t border-rose-800/70">
                   <Link href="/contact" onClick={toggleMobileMenu} className="w-full">
-                    <button className="w-full px-6 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-semibold text-base rounded-full shadow-lg hover:shadow-xl hover:from-emerald-600 hover:to-emerald-700 transition-all duration-200">
+                    <button className="w-full px-6 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-semibold text-base rounded-full shadow-xl hover:shadow-2xl hover:from-emerald-600 hover:to-emerald-700 transition-all duration-200">
                       İletişime Geç
                     </button>
                   </Link>
