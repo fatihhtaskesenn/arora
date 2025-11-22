@@ -250,7 +250,8 @@ const ProjectGallery = ({ projects = [], columns = 'auto' }) => {
        typeof projects[selectedImageIndex].image === 'string' && (
         <Lightbox
           image={String(projects[selectedImageIndex].image)}
-          title={projects[selectedImageIndex]?.title || `Proje ${selectedImageIndex + 1}`}
+          title=""
+          category=""
           onClose={handleClose}
           onPrevious={projects.length > 1 ? handlePrevious : undefined}
           onNext={projects.length > 1 ? handleNext : undefined}

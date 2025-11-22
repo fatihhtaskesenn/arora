@@ -23,9 +23,20 @@ const Lightbox = ({
   onNext, 
   hasPrevious = false, 
   hasNext = false,
-  title = ''
+  title = '',
+  category = ''
 }) => {
-  const [backgroundColor, setBackgroundColor] = useState('white');
+  // Determine initial background color: black for BBQ, white for others
+  const getInitialBackgroundColor = (cat) => {
+    if (!cat) return 'white';
+    const catLower = String(cat).toLowerCase();
+    if (catLower.includes('barbekü') || catLower.includes('bbq') || cat === 'bbq' || cat === 'Barbekü Setleri') {
+      return 'black';
+    }
+    return 'white';
+  };
+  
+  const [backgroundColor, setBackgroundColor] = useState(() => getInitialBackgroundColor(category));
   const [hasError, setHasError] = useState(false);
   
   // Validate image prop with try-catch
@@ -39,23 +50,26 @@ const Lightbox = ({
     validImage = null;
   }
   
-  // Reset background color when image changes
+  // Reset background color when image or category changes
   useEffect(() => {
     try {
       if (validImage) {
-        setBackgroundColor('white');
+        // Reset to initial color based on category
+        const initialColor = getInitialBackgroundColor(category);
+        setBackgroundColor(initialColor);
         setHasError(false);
       }
     } catch (error) {
       console.error('Lightbox: Error in useEffect', error);
       // Fallback: ensure backgroundColor is valid
       try {
-        setBackgroundColor('white');
+        const initialColor = getInitialBackgroundColor(category);
+        setBackgroundColor(initialColor);
       } catch (resetError) {
         console.error('Lightbox: Error resetting color in useEffect', resetError);
       }
     }
-  }, [validImage]);
+  }, [validImage, category]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -261,22 +275,24 @@ const Lightbox = ({
                 <div 
                   className="relative inline-block"
                   style={{
-                    backgroundColor: backgroundColor === 'white' ? '#ffffff' : 'transparent',
-                    padding: backgroundColor === 'white' ? '24px' : '0',
-                    borderRadius: backgroundColor === 'white' ? '12px' : '0',
-                    boxShadow: backgroundColor === 'white' ? '0 20px 60px rgba(0, 0, 0, 0.15)' : 'none',
-                    border: backgroundColor === 'white' ? '1px solid rgba(0, 0, 0, 0.05)' : 'none'
+                    backgroundColor: 'transparent',
+                    padding: '0',
+                    borderRadius: '0',
+                    boxShadow: 'none',
+                    border: 'none',
+                    isolation: 'isolate'
                   }}
                 >
                   <img
                     src={validImage}
                     alt={title || 'Project image' || 'Image'}
-                    className="object-contain max-h-[85vh] w-auto mx-auto rounded-lg"
+                    className="object-contain max-h-[85vh] w-auto mx-auto"
                     style={{ 
                       maxWidth: '100%', 
                       height: 'auto',
                       display: 'block',
-                      backgroundColor: 'transparent'
+                      backgroundColor: 'transparent',
+                      mixBlendMode: 'normal'
                     }}
                     onError={(e) => {
                       try {
@@ -302,25 +318,6 @@ const Lightbox = ({
               )}
             </div>
 
-            {/* Title */}
-            {title && (
-              <motion.div
-                className={`absolute bottom-0 left-0 right-0 p-6 rounded-b-lg ${
-                  backgroundColor === 'white'
-                    ? 'bg-gradient-to-t from-white/80 to-transparent'
-                    : 'bg-gradient-to-t from-black/80 to-transparent'
-                }`}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-              >
-                <p className={`text-lg font-semibold text-center ${
-                  backgroundColor === 'white' ? 'text-black' : 'text-white'
-                }`}>
-                  {title}
-                </p>
-              </motion.div>
-            )}
           </motion.div>
 
           {/* Instructions */}

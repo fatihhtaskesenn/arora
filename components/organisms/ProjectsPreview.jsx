@@ -362,7 +362,8 @@ const ProjectsPreview = () => {
        typeof displayedProjects[selectedImageIndex].image === 'string' && (
         <Lightbox
           image={String(displayedProjects[selectedImageIndex].image)}
-          title={displayedProjects[selectedImageIndex]?.title || `Proje ${selectedImageIndex + 1}`}
+          title=""
+          category=""
           onClose={handleClose}
           onPrevious={displayedProjects.length > 1 ? handlePrevious : undefined}
           onNext={displayedProjects.length > 1 ? handleNext : undefined}

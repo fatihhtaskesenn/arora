@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import Lightbox from './Lightbox';
 
-export default function ProductImageGallery({ images = [], productName = '' }) {
+export default function ProductImageGallery({ images = [], productName = '', category = '' }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
 
@@ -166,7 +166,8 @@ export default function ProductImageGallery({ images = [], productName = '' }) {
       {lightboxOpen && images && images.length > 0 && images[currentIndex] && (
         <Lightbox
           image={images[currentIndex]}
-          title={`${productName || 'Ürün'}${images.length > 1 ? ` - Görsel ${currentIndex + 1}/${images.length}` : ''}`}
+          title=""
+          category={category}
           onClose={() => setLightboxOpen(false)}
           onPrevious={images.length > 1 ? goToPrevious : undefined}
           onNext={images.length > 1 ? goToNext : undefined}

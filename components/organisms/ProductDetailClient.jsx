@@ -179,6 +179,7 @@ export default function ProductDetailClient({ productId }) {
                     : []
                 } 
                 productName={product?.name || 'Ürün'}
+                category={product?.category_id || product?.category || ''}
               />
               
               {/* Badges */}
