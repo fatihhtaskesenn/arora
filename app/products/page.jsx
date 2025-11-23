@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ProductCard from '@/components/molecules/ProductCard';
 import { getAllProducts, getProductsByCategory as getProductsByCategorySupabase, categories } from '@/components/lib/productsService';
@@ -22,6 +22,9 @@ export default function ProductsPage() {
   const [sortBy, setSortBy] = useState('default');
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [lastScrollY, setLastScrollY] = useState(0);
+  const categorySectionRef = useRef(null);
 
   // Fetch products from Supabase
   useEffect(() => {
@@ -49,6 +52,41 @@ export default function ProductsPage() {
 
     fetchProducts();
   }, [selectedCategory]);
+
+  // Handle scroll to hide/show category section on mobile
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      // Only hide on mobile (below 1024px) and when scrolled past hero section
+      if (window.innerWidth < 1024) {
+        if (currentScrollY > 200) {
+          // Scrolling down
+          if (currentScrollY > lastScrollY) {
+            setIsScrolled(true);
+          } 
+          // Scrolling up
+          else if (currentScrollY < lastScrollY) {
+            setIsScrolled(false);
+          }
+        } else {
+          // At top of page, always show
+          setIsScrolled(false);
+        }
+      } else {
+        // Desktop: always show
+        setIsScrolled(false);
+      }
+      
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [lastScrollY]);
 
   // Filter products by search
   let filteredProducts = products;
@@ -158,7 +196,24 @@ export default function ProductsPage() {
       </section>
 
       {/* Categories & Sort Section */}
-      <section className="sticky top-20 z-40 bg-neutral-900/80 backdrop-blur-xl border-y border-white/10 py-6">
+      <motion.section 
+        ref={categorySectionRef}
+        className="sticky top-20 z-40 bg-neutral-900/80 backdrop-blur-xl border-y border-white/10 py-6"
+        initial={{ y: 0, opacity: 1 }}
+        animate={{ 
+          y: isScrolled && categorySectionRef.current 
+            ? -categorySectionRef.current.offsetHeight 
+            : 0, 
+          opacity: isScrolled ? 0 : 1 
+        }}
+        transition={{ 
+          duration: 0.3, 
+          ease: 'easeInOut' 
+        }}
+        style={{ 
+          pointerEvents: isScrolled ? 'none' : 'auto'
+        }}
+      >
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           {/* Categories */}
           <div className="flex flex-wrap items-center justify-center gap-3 mb-6">
@@ -202,7 +257,7 @@ export default function ProductsPage() {
             </select>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* Products Grid */}
       <section className="py-16">
