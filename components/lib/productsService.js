@@ -4,9 +4,156 @@
 import { supabase } from './supabaseClient';
 
 /**
- * Product Categories
+ * Get all categories from database
+ * @returns {Promise<Array>}
  */
-export const categories = [
+export const getCategories = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('categories')
+      .select('*')
+      .order('display_order', { ascending: true });
+
+    if (error) throw error;
+
+    // Add "all" category at the beginning
+    return [
+      {
+        id: 'all',
+        name: 'Tüm Ürünler',
+        slug: 'all',
+        icon: '🏪',
+        description: 'Tüm ürünleri görüntüle',
+      },
+      ...data.map(cat => ({
+        id: cat.id,
+        name: cat.name,
+        slug: cat.slug,
+        icon_path: cat.icon_path,
+        description: cat.description,
+        display_order: cat.display_order,
+      })),
+    ];
+  } catch (error) {
+    // Better error handling - serialize error properly
+    const errorMessage = error?.message || String(error) || 'Unknown error';
+    const errorCode = error?.code || error?.hint || '';
+    
+    // Check if it's a table not found error
+    const isTableNotFound = errorMessage.includes('does not exist') || 
+        errorMessage.includes('relation') || 
+        errorMessage.includes('schema cache') ||
+        errorCode === '42P01' || 
+        errorCode === 'PGRST205';
+    
+    // Only show warning for table not found errors, not full error stack
+    if (isTableNotFound) {
+      console.warn('⚠️ Categories table not found. Using fallback categories. To enable database categories, run migration: supabase/migrations/008_add_categories_and_subcategories.sql');
+    } else {
+      // For other errors, show full details
+      const errorDetails = error?.details || error?.hint || '';
+      console.error('Error fetching categories:', errorMessage);
+      if (errorCode) console.error('Error code:', errorCode);
+      if (errorDetails) console.error('Error details:', errorDetails);
+    }
+    
+    // Fallback to static categories if database fails
+    return getStaticCategories();
+  }
+};
+
+/**
+ * Get subcategories for a category
+ * @param {string} categoryId - Category UUID or slug
+ * @returns {Promise<Array>}
+ */
+export const getSubcategories = async (categoryId) => {
+  try {
+    let query = supabase
+      .from('subcategories')
+      .select('*')
+      .order('display_order', { ascending: true });
+
+    // If categoryId is UUID, use it directly, otherwise find by slug
+    if (categoryId && categoryId !== 'all') {
+      // Check if it's a UUID (contains hyphens)
+      if (categoryId.includes('-') && categoryId.length > 20) {
+        query = query.eq('category_id', categoryId);
+      } else {
+        // It's a slug, find category first
+        const { data: category } = await supabase
+          .from('categories')
+          .select('id')
+          .eq('slug', categoryId)
+          .single();
+        
+        if (category) {
+          query = query.eq('category_id', category.id);
+        } else {
+          return [];
+        }
+      }
+    } else {
+      return [];
+    }
+
+    const { data, error } = await query;
+
+    if (error) throw error;
+
+    // Separate parent and nested subcategories
+    const parents = data.filter(sub => !sub.parent_subcategory_id);
+    const nested = data.filter(sub => sub.parent_subcategory_id);
+
+    // Group nested under parents
+    return parents.map(parent => ({
+      ...parent,
+      children: nested.filter(n => n.parent_subcategory_id === parent.id),
+    }));
+  } catch (error) {
+    const errorMessage = error?.message || String(error) || 'Unknown error';
+    const errorCode = error?.code || error?.hint || '';
+    const errorDetails = error?.details || error?.hint || '';
+    
+    // Serialize error object properly
+    const errorInfo = {
+      message: errorMessage,
+      code: errorCode,
+      details: errorDetails,
+      categoryId,
+      name: error?.name,
+    };
+    
+    // Remove undefined values
+    Object.keys(errorInfo).forEach(key => {
+      if (errorInfo[key] === undefined || errorInfo[key] === '') {
+        delete errorInfo[key];
+      }
+    });
+    
+    console.error('Error fetching subcategories:', errorMessage);
+    if (errorCode) console.error('Error code:', errorCode);
+    if (errorDetails) console.error('Error details:', errorDetails);
+    console.error('Full error object:', JSON.stringify(errorInfo, null, 2));
+    
+    // Check if it's a table not found error
+    if (errorMessage.includes('does not exist') || 
+        errorMessage.includes('relation') || 
+        errorMessage.includes('schema cache') ||
+        errorCode === '42P01' || 
+        errorCode === 'PGRST205') {
+      console.warn('⚠️ Subcategories table does not exist. Please run migration: supabase/migrations/008_add_categories_and_subcategories.sql');
+    }
+    
+    return [];
+  }
+};
+
+/**
+ * Static categories fallback (for backward compatibility)
+ * @returns {Array}
+ */
+export const getStaticCategories = () => [
   {
     id: 'all',
     name: 'Tüm Ürünler',
@@ -14,34 +161,54 @@ export const categories = [
     icon: '🏪',
   },
   {
-    id: 'stones-marbles',
-    name: 'Taşlar ve Mermerler',
-    slug: 'taslar-mermerler',
+    id: 'dogal-taslar',
+    name: 'Doğal Taşlar',
+    slug: 'dogal-taslar',
     icon: '🪨',
-    description: 'Doğal taşlar ve kaliteli mermer ürünleri',
+    description: 'Doğal taş ürünleri',
   },
   {
-    id: 'bbq',
-    name: 'Barbekü Setleri',
-    slug: 'barbeku-setleri',
+    id: 'somineler',
+    name: 'Şömineler',
+    slug: 'somineler',
     icon: '🔥',
-    description: 'Modern ve dayanıklı barbekü sistemleri',
+    description: 'Şömine modelleri',
   },
   {
-    id: 'fireplaces',
-    name: 'Elektrikli Şömineler',
-    slug: 'elektrikli-somineler',
+    id: 'barbeku',
+    name: 'Barbekü',
+    slug: 'barbeku',
+    icon: '🍖',
+    description: 'Barbekü sistemleri',
+  },
+  {
+    id: 'firinlar',
+    name: 'Fırınlar',
+    slug: 'firinlar',
     icon: '🔥',
-    description: 'Şık ve fonksiyonel elektrikli şömine modelleri',
+    description: 'Fırın modelleri',
   },
   {
-    id: 'stone-products',
-    name: 'Taştan Yapılma Ürünler',
-    slug: 'tastan-urunler',
+    id: 'sobalar',
+    name: 'Sobalar',
+    slug: 'sobalar',
+    icon: '🔥',
+    description: 'Soba modelleri',
+  },
+  {
+    id: 'tas-aksesuarlar',
+    name: 'Taş Aksesuarlar',
+    slug: 'tas-aksesuarlar',
     icon: '🗿',
-    description: 'El işçiliği ile hazırlanan taş ürünler',
+    description: 'Taş aksesuar ürünleri',
   },
 ];
+
+/**
+ * Legacy categories export (for backward compatibility)
+ * @deprecated Use getCategories() instead
+ */
+export const categories = getStaticCategories();
 
 /**
  * Get all products
@@ -64,33 +231,166 @@ export const getAllProducts = async () => {
     // Transform data to match frontend format
     return data.map(transformProduct);
   } catch (error) {
-    console.error('Error fetching products:', error);
+    // Better error handling - serialize error properly
+    const errorMessage = error?.message || String(error) || 'Unknown error';
+    const errorCode = error?.code || error?.hint || '';
+    const errorDetails = error?.details || error?.hint || '';
+    
+    // Serialize error object properly
+    const errorInfo = {
+      message: errorMessage,
+      code: errorCode,
+      details: errorDetails,
+      name: error?.name,
+      stack: error?.stack,
+    };
+    
+    // Remove undefined values
+    Object.keys(errorInfo).forEach(key => {
+      if (errorInfo[key] === undefined || errorInfo[key] === '') {
+        delete errorInfo[key];
+      }
+    });
+    
+    console.error('Error fetching products:', errorMessage);
+    if (errorCode) console.error('Error code:', errorCode);
+    if (errorDetails) console.error('Error details:', errorDetails);
+    console.error('Full error object:', JSON.stringify(errorInfo, null, 2));
+    
+    // Check if it's a table not found error
+    if (errorMessage.includes('does not exist') || 
+        errorMessage.includes('relation') || 
+        errorMessage.includes('schema cache') ||
+        errorCode === '42P01' || 
+        errorCode === 'PGRST205') {
+      console.warn('⚠️ Products table does not exist. Please run migration: supabase/migrations/001_initial_schema.sql');
+    }
+    
     return [];
   }
 };
 
 /**
  * Get products by category
- * @param {string} categoryId
+ * @param {string} categoryId - Category UUID or slug
+ * @param {string} subcategoryId - Optional subcategory UUID or slug
  * @returns {Promise<Array>}
  */
-export const getProductsByCategory = async (categoryId) => {
+export const getProductsByCategory = async (categoryId, subcategoryId = null) => {
   try {
     if (categoryId === 'all') {
       return await getAllProducts();
     }
 
-    const { data, error } = await supabase
+    let query = supabase
       .from('products')
       .select('*')
-      .eq('category_id', categoryId)
       .order('created_at', { ascending: false });
+
+    // If subcategory is provided, filter by subcategory
+    if (subcategoryId) {
+      // Check if it's a UUID
+      if (subcategoryId.includes('-') && subcategoryId.length > 20) {
+        query = query.eq('subcategory_id', subcategoryId);
+      } else {
+        // It's a slug, find subcategory first
+        const { data: subcategory } = await supabase
+          .from('subcategories')
+          .select('id')
+          .eq('slug', subcategoryId)
+          .single();
+        
+        if (subcategory) {
+          query = query.eq('subcategory_id', subcategory.id);
+        } else {
+          return [];
+        }
+      }
+    } else {
+      // Filter by category
+      // Check if categoryId is UUID
+      if (categoryId.includes('-') && categoryId.length > 20) {
+        // It's a UUID, find all subcategories for this category
+        const { data: subcategories } = await supabase
+          .from('subcategories')
+          .select('id')
+          .eq('category_id', categoryId);
+        
+        if (subcategories && subcategories.length > 0) {
+          const subcategoryIds = subcategories.map(s => s.id);
+          query = query.in('subcategory_id', subcategoryIds);
+        } else {
+          // No subcategories, check if products have category_id set
+          query = query.eq('category_id', categoryId);
+        }
+      } else {
+        // It's a slug, find category and its subcategories
+        const { data: category } = await supabase
+          .from('categories')
+          .select('id')
+          .eq('slug', categoryId)
+          .single();
+        
+        if (category) {
+          const { data: subcategories } = await supabase
+            .from('subcategories')
+            .select('id')
+            .eq('category_id', category.id);
+          
+          if (subcategories && subcategories.length > 0) {
+            const subcategoryIds = subcategories.map(s => s.id);
+            query = query.in('subcategory_id', subcategoryIds);
+          } else {
+            // No subcategories, check if products have category_id set
+            query = query.eq('category_id', category.id);
+          }
+        } else {
+          return [];
+        }
+      }
+    }
+
+    const { data, error } = await query;
 
     if (error) throw error;
 
     return data.map(transformProduct);
   } catch (error) {
-    console.error('Error fetching products by category:', error);
+    const errorMessage = error?.message || String(error) || 'Unknown error';
+    const errorCode = error?.code || error?.hint || '';
+    const errorDetails = error?.details || error?.hint || '';
+    
+    // Serialize error object properly
+    const errorInfo = {
+      message: errorMessage,
+      code: errorCode,
+      details: errorDetails,
+      categoryId,
+      subcategoryId,
+      name: error?.name,
+    };
+    
+    // Remove undefined values
+    Object.keys(errorInfo).forEach(key => {
+      if (errorInfo[key] === undefined || errorInfo[key] === '') {
+        delete errorInfo[key];
+      }
+    });
+    
+    console.error('Error fetching products by category:', errorMessage);
+    if (errorCode) console.error('Error code:', errorCode);
+    if (errorDetails) console.error('Error details:', errorDetails);
+    console.error('Full error object:', JSON.stringify(errorInfo, null, 2));
+    
+    // Check if it's a table not found error
+    if (errorMessage.includes('does not exist') || 
+        errorMessage.includes('relation') || 
+        errorMessage.includes('schema cache') ||
+        errorCode === '42P01' || 
+        errorCode === 'PGRST205') {
+      console.warn('⚠️ Products or categories table does not exist. Please run migrations.');
+    }
+    
     return [];
   }
 };
@@ -202,6 +502,9 @@ export const createProduct = async (productData) => {
       name: productData.name,
       category: productData.category,
       category_id: productData.category_id,
+      subcategory_id: productData.subcategory_id && productData.subcategory_id.trim() !== '' 
+        ? productData.subcategory_id 
+        : null,
       description: productData.description || null,
       features: productData.features && Array.isArray(productData.features) 
         ? productData.features 
@@ -293,6 +596,9 @@ export const updateProduct = async (id, updates) => {
       name: updates.name,
       category: updates.category,
       category_id: updates.category_id,
+      subcategory_id: updates.subcategory_id !== undefined
+        ? (updates.subcategory_id && updates.subcategory_id.trim() !== '' ? updates.subcategory_id.trim() : null)
+        : undefined,
       description: updates.description !== undefined ? (updates.description || null) : undefined,
       features: updates.features && Array.isArray(updates.features) 
         ? updates.features 
@@ -445,10 +751,13 @@ function transformProduct(product) {
     id: product.id,
     name: product.name,
     category: product.category,
-    categoryId: product.category_id,
+    category_id: product.category_id,
+    categoryId: product.category_id, // Backward compatibility
+    subcategory_id: product.subcategory_id || null,
     image: images[0] || product.image_url || '', // Primary image (first in array or fallback to image_url)
     images: images, // All images array
     inStock: product.in_stock,
+    in_stock: product.in_stock, // Backward compatibility
     stock: product.stock,
     badge: product.badge,
     description: product.description,

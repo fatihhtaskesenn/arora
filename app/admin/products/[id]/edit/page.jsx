@@ -8,7 +8,8 @@ import MultipleImageUpload from '@/components/molecules/MultipleImageUpload';
 import {
   getProductById,
   updateProduct,
-  categories,
+  getCategories,
+  getSubcategories,
 } from '@/components/lib/productsService';
 
 export default function EditProductPage() {
@@ -18,10 +19,14 @@ export default function EditProductPage() {
 
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
+  const [categories, setCategories] = useState([]);
+  const [subcategories, setSubcategories] = useState([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
   const [formData, setFormData] = useState({
     name: '',
     category: '',
     category_id: '',
+    subcategory_id: '',
     description: '',
     images: [],
     image_url: '',
@@ -31,6 +36,57 @@ export default function EditProductPage() {
     features: [],
   });
   const [newFeature, setNewFeature] = useState('');
+
+  // Fetch categories from database
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setLoadingCategories(true);
+        const cats = await getCategories();
+        setCategories(cats || []);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+        setCategories([]);
+      } finally {
+        setLoadingCategories(false);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  // Fetch subcategories when category is selected or when categories are loaded
+  useEffect(() => {
+    const fetchSubcategories = async () => {
+      // Wait for categories to be loaded
+      if (loadingCategories || categories.length === 0) {
+        return;
+      }
+
+      if (!formData.category_id) {
+        setSubcategories([]);
+        return;
+      }
+
+      try {
+        // Find category by ID or slug
+        const selectedCategory = categories.find(
+          (cat) => cat.id === formData.category_id || cat.slug === formData.category_id
+        );
+        
+        if (selectedCategory) {
+          const subs = await getSubcategories(selectedCategory.id || selectedCategory.slug);
+          setSubcategories(subs || []);
+        } else {
+          setSubcategories([]);
+        }
+      } catch (error) {
+        console.error('Error fetching subcategories:', error);
+        setSubcategories([]);
+      }
+    };
+
+    fetchSubcategories();
+  }, [formData.category_id, categories, loadingCategories]);
 
   // Fetch existing product
   useEffect(() => {
@@ -48,11 +104,12 @@ export default function EditProductPage() {
         setFormData({
           name: product.name || '',
           category: product.category || '',
-          category_id: product.categoryId || '',
+          category_id: product.category_id || product.categoryId || '',
+          subcategory_id: product.subcategory_id || '',
           description: product.description || '',
           images: product.images || (product.image ? [product.image] : []),
           image_url: product.image || '',
-          in_stock: product.inStock ?? true,
+          in_stock: product.inStock ?? product.in_stock ?? true,
           stock: product.stock || 0,
           badge: product.badge || '',
           features: product.features || [],
@@ -78,11 +135,19 @@ export default function EditProductPage() {
   };
 
   const handleCategoryChange = (e) => {
-    const selectedCat = categories.find((cat) => cat.id === e.target.value);
+    const selectedCat = categories.find((cat) => cat.id === e.target.value || cat.slug === e.target.value);
     setFormData((prev) => ({
       ...prev,
       category: selectedCat?.name || '',
       category_id: selectedCat?.id || '',
+      subcategory_id: '', // Reset subcategory when category changes
+    }));
+  };
+
+  const handleSubcategoryChange = (e) => {
+    setFormData((prev) => ({
+      ...prev,
+      subcategory_id: e.target.value || '',
     }));
   };
 
@@ -193,23 +258,67 @@ export default function EditProductPage() {
               <label className="block text-sm font-medium text-neutral-700 mb-2">
                 Kategori <span className="text-red-500">*</span>
               </label>
-              <select
-                name="category_id"
-                value={formData.category_id}
-                onChange={handleCategoryChange}
-                required
-                className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="">Kategori Seçin</option>
-                {categories
-                  .filter((cat) => cat.id !== 'all')
-                  .map((cat) => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.icon} {cat.name}
-                    </option>
-                  ))}
-              </select>
+              {loadingCategories ? (
+                <div className="w-full px-4 py-2 border border-neutral-300 rounded-lg bg-neutral-100 animate-pulse">
+                  Kategoriler yükleniyor...
+                </div>
+              ) : (
+                <select
+                  name="category_id"
+                  value={formData.category_id}
+                  onChange={handleCategoryChange}
+                  required
+                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">Kategori Seçin</option>
+                  {categories
+                    .filter((cat) => cat.slug !== 'all')
+                    .map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </option>
+                    ))}
+                </select>
+              )}
             </div>
+
+            {/* Subcategory */}
+            {subcategories.length > 0 && (
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  Alt Kategori
+                </label>
+                <select
+                  name="subcategory_id"
+                  value={formData.subcategory_id}
+                  onChange={handleSubcategoryChange}
+                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">Alt Kategori Seçin (Opsiyonel)</option>
+                  {subcategories.map((sub) => {
+                    // If subcategory has children, create optgroup structure
+                    if (sub.children && sub.children.length > 0) {
+                      return (
+                        <optgroup key={sub.id} label={sub.name}>
+                          <option value={sub.id}>{sub.name} (Genel)</option>
+                          {sub.children.map((child) => (
+                            <option key={child.id} value={child.id}>
+                              └─ {child.name}
+                            </option>
+                          ))}
+                        </optgroup>
+                      );
+                    }
+                    // Regular subcategory without children
+                    return (
+                      <option key={sub.id} value={sub.id}>
+                        {sub.name}
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+            )}
 
             {/* Description */}
             <div>

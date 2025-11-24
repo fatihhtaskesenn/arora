@@ -3,28 +3,114 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ProductCard from '@/components/molecules/ProductCard';
-import { getAllProducts, getProductsByCategory as getProductsByCategorySupabase, categories } from '@/components/lib/productsService';
-import { HiSearch, HiFilter } from 'react-icons/hi';
-import { FireplaceIcon, BBQIcon, StoneProductsIcon, StonesMarblesIcon } from '@/components/atoms/CategoryIcons';
+import { getAllProducts, getProductsByCategory as getProductsByCategorySupabase, getCategories, getSubcategories } from '@/components/lib/productsService';
+import { HiSearch, HiFilter, HiChevronDown } from 'react-icons/hi';
+import { 
+  NaturalStonesIcon, 
+  FireplaceIcon, 
+  BBQIcon, 
+  OvenIcon, 
+  StoveIcon, 
+  StoneAccessoriesIcon 
+} from '@/components/atoms/CategoryIcons';
 
 // Icon mapping for categories
 const categoryIconMap = {
-  'stones-marbles': StonesMarblesIcon,
-  'bbq': BBQIcon,
-  'fireplaces': FireplaceIcon,
-  'stone-products': StoneProductsIcon,
+  'dogal-taslar': NaturalStonesIcon,
+  'somineler': FireplaceIcon,
+  'barbeku': BBQIcon,
+  'firinlar': OvenIcon,
+  'sobalar': StoveIcon,
+  'tas-aksesuarlar': StoneAccessoriesIcon,
   'all': null,
 };
 
 export default function ProductsPage() {
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedSubcategory, setSelectedSubcategory] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('default');
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [subcategories, setSubcategories] = useState([]);
+  const [categorySubcategories, setCategorySubcategories] = useState({}); // Her kategori için alt kategoriler
+  const [hoveredCategory, setHoveredCategory] = useState(null); // Hover'da olan kategori
   const [loading, setLoading] = useState(true);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [isScrolled, setIsScrolled] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const [isCategoryHovered, setIsCategoryHovered] = useState(false);
   const categorySectionRef = useRef(null);
+
+  // Fetch categories from database
+  useEffect(() => {
+    const fetchCategories = async () => {
+      setCategoriesLoading(true);
+      try {
+        const cats = await getCategories();
+        setCategories(cats || []);
+      } catch (error) {
+        const errorMessage = error?.message || String(error) || 'Unknown error';
+        console.error('❌ Error loading categories:', errorMessage);
+        if (error?.code) console.error('Error code:', error.code);
+        // Set fallback categories
+        setCategories([
+          {
+            id: 'all',
+            name: 'Tüm Ürünler',
+            slug: 'all',
+            icon: '🏪',
+          },
+        ]);
+      } finally {
+        setCategoriesLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  // Fetch subcategories for all categories on mount and when categories change
+  useEffect(() => {
+    const fetchAllSubcategories = async () => {
+      if (categoriesLoading) return; // Wait for categories to load first
+      
+      const subcategoriesMap = {};
+      
+      for (const category of categories) {
+        if (category.slug && category.slug !== 'all') {
+          try {
+            const subs = await getSubcategories(category.slug || category.id);
+            subcategoriesMap[category.id || category.slug] = subs || [];
+          } catch (error) {
+            subcategoriesMap[category.id || category.slug] = [];
+          }
+        }
+      }
+      
+      setCategorySubcategories(subcategoriesMap);
+      
+      // Set subcategories for selected category
+      if (selectedCategory && selectedCategory !== 'all') {
+        setSubcategories(subcategoriesMap[selectedCategory] || []);
+      } else {
+        setSubcategories([]);
+      }
+    };
+
+    if (categories.length > 0 && !categoriesLoading) {
+      fetchAllSubcategories();
+    }
+  }, [categories, categoriesLoading]);
+
+  // Update subcategories when category is selected
+  useEffect(() => {
+    if (selectedCategory && selectedCategory !== 'all') {
+      setSubcategories(categorySubcategories[selectedCategory] || []);
+    } else {
+      setSubcategories([]);
+    }
+  }, [selectedCategory, categorySubcategories]);
 
   // Fetch products from Supabase
   useEffect(() => {
@@ -37,13 +123,16 @@ export default function ProductsPage() {
         if (selectedCategory === 'all') {
           data = await getAllProducts();
         } else {
-          data = await getProductsByCategorySupabase(selectedCategory);
+          data = await getProductsByCategorySupabase(selectedCategory, selectedSubcategory);
         }
         
         console.log('✅ Products loaded:', data?.length || 0);
         setProducts(data || []);
       } catch (error) {
-        console.error('❌ Error loading products:', error);
+        const errorMessage = error?.message || String(error) || 'Unknown error';
+        console.error('❌ Error loading products:', errorMessage);
+        if (error?.code) console.error('Error code:', error.code);
+        if (error?.details) console.error('Error details:', error.details);
         setProducts([]);
       } finally {
         setLoading(false);
@@ -51,31 +140,30 @@ export default function ProductsPage() {
     };
 
     fetchProducts();
-  }, [selectedCategory]);
+  }, [selectedCategory, selectedSubcategory]);
 
-  // Handle scroll to hide/show category section on mobile
+  // Handle scroll to hide/show category section - Desktop ve Mobile için
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
       
-      // Only hide on mobile (below 1024px) and when scrolled past hero section
-      if (window.innerWidth < 1024) {
-        if (currentScrollY > 200) {
-          // Scrolling down
-          if (currentScrollY > lastScrollY) {
-            setIsScrolled(true);
-          } 
-          // Scrolling up
-          else if (currentScrollY < lastScrollY) {
+      // Hero section'dan sonra scroll edilmişse gizle
+      if (currentScrollY > 100) {
+        // Aşağı scroll ediliyorsa gizle
+        if (currentScrollY > lastScrollY) {
+          setIsScrolled(true);
+        } 
+        // Yukarı scroll ediliyorsa göster (eğer hover yoksa)
+        else if (currentScrollY < lastScrollY && currentScrollY < lastScrollY - 5) {
+          // Sadece hover yoksa gizle, hover varsa göstermeye devam et
+          if (!isCategoryHovered) {
             setIsScrolled(false);
           }
-        } else {
-          // At top of page, always show
-          setIsScrolled(false);
         }
       } else {
-        // Desktop: always show
+        // Sayfa başındayken her zaman göster
         setIsScrolled(false);
+        setIsCategoryHovered(false);
       }
       
       setLastScrollY(currentScrollY);
@@ -86,7 +174,7 @@ export default function ProductsPage() {
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
-  }, [lastScrollY]);
+  }, [lastScrollY, isCategoryHovered]);
 
   // Filter products by search
   let filteredProducts = products;
@@ -118,7 +206,7 @@ export default function ProductsPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-neutral-950 via-neutral-900 to-black">
+    <main className="min-h-screen bg-black">
       {/* Hero Section */}
       <section className="relative pt-32 pb-16 overflow-hidden">
         {/* Animated Background */}
@@ -157,7 +245,7 @@ export default function ProductsPage() {
             transition={{ duration: 0.6 }}
           >
             <motion.span
-              className="inline-block px-6 py-2 mb-6 bg-gradient-to-r from-indigo-600/20 to-purple-600/20 border border-indigo-500/30 rounded-full text-indigo-300 font-semibold text-sm backdrop-blur-sm"
+              className="inline-block px-4 py-1.5 mb-4 bg-neutral-800 border border-white/10 rounded-full text-white/80 font-medium text-xs"
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.2 }}
@@ -165,13 +253,9 @@ export default function ProductsPage() {
               🛍️ Ürünlerimiz
             </motion.span>
 
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 bg-gradient-to-r from-white via-indigo-200 to-purple-200 bg-clip-text text-transparent">
-              Premium Ürünler
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 text-white">
+              Ürünlerimiz
             </h1>
-
-            <p className="text-xl text-neutral-300 leading-relaxed">
-              Kaliteli malzemeler ve modern tasarımlarla hayalinizdeki mekanı yaratın
-            </p>
           </motion.div>
 
           {/* Search Bar */}
@@ -195,67 +279,235 @@ export default function ProductsPage() {
         </div>
       </section>
 
-      {/* Categories & Sort Section */}
+      {/* Categories & Sort Section - Scroll'da Gizlenir, Hover'da Gösterilir */}
       <motion.section 
         ref={categorySectionRef}
-        className="sticky top-20 z-40 bg-neutral-900/80 backdrop-blur-xl border-y border-white/10 py-6"
+        className="sticky top-16 sm:top-20 z-40 bg-black border-y border-white/5 py-4 sm:py-8 transition-all duration-300"
         initial={{ y: 0, opacity: 1 }}
         animate={{ 
-          y: isScrolled && categorySectionRef.current 
-            ? -categorySectionRef.current.offsetHeight 
+          y: isScrolled && !isCategoryHovered && categorySectionRef.current 
+            ? -categorySectionRef.current.offsetHeight - 10
             : 0, 
-          opacity: isScrolled ? 0 : 1 
+          opacity: (isScrolled && !isCategoryHovered) ? 0 : 1 
         }}
         transition={{ 
           duration: 0.3, 
           ease: 'easeInOut' 
         }}
+        onMouseEnter={() => {
+          // Desktop: hover'da göster
+          setIsCategoryHovered(true);
+        }}
+        onMouseLeave={() => {
+          // Desktop: hover'dan çıkınca scroll durumuna göre gizle
+          if (isScrolled) {
+            setIsCategoryHovered(false);
+          }
+        }}
+        onTouchStart={(e) => {
+          // Mobile: touch'da göster
+          e.stopPropagation();
+          setIsCategoryHovered(true);
+        }}
         style={{ 
-          pointerEvents: isScrolled ? 'none' : 'auto'
+          pointerEvents: (isScrolled && !isCategoryHovered) ? 'none' : 'auto',
+          transform: isScrolled && !isCategoryHovered ? 'translateY(-100%)' : 'translateY(0)'
         }}
       >
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Categories */}
-          <div className="flex flex-wrap items-center justify-center gap-3 mb-6">
-            {categories.map((category) => {
-              const IconComponent = categoryIconMap[category.id];
+        <div className="container mx-auto px-3 sm:px-4 lg:px-6 xl:px-8">
+          {/* Main Categories - Yatay Sıralı Kare Kutular - Mobile Responsive */}
+          {categoriesLoading ? (
+            <div className="flex flex-wrap items-start justify-center gap-3 sm:gap-6 mb-8">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div
+                  key={i}
+                  className="w-24 h-24 sm:w-32 sm:h-32 bg-white/5 border border-white/10 animate-pulse"
+                />
+              ))}
+            </div>
+          ) : (
+          <div className="flex flex-wrap items-start justify-center gap-3 sm:gap-6 mb-8">
+            {categories.filter(cat => cat.slug !== 'all').map((category) => {
+              const IconComponent = categoryIconMap[category.slug || category.id];
+              const categoryKey = category.id || category.slug;
+              const isSelected = selectedCategory === categoryKey;
+              const isHovered = hoveredCategory === categoryKey;
+              const categorySubs = categorySubcategories[categoryKey] || [];
+              const hasSubcategories = categorySubs.length > 0;
+              // Sadece hover'da göster, tıklama ile kategori seçilsin ama dropdown sadece hover ile görünsün
+              const showSubcategories = isHovered && hasSubcategories;
+              
               return (
-                <motion.button
-                  key={category.id}
-                  onClick={() => setSelectedCategory(category.id)}
-                  className={`px-6 py-3 rounded-full font-semibold transition-all duration-300 flex items-center gap-2 ${
-                    selectedCategory === category.id
-                      ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg'
-                      : 'bg-white/10 text-neutral-300 hover:bg-white/20'
-                  }`}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                <div
+                  key={categoryKey}
+                  className="relative"
+                  onMouseEnter={() => {
+                    // Desktop: hover'da alt kategorileri göster
+                    setHoveredCategory(categoryKey);
+                  }}
+                  onMouseLeave={() => {
+                    // Desktop: hover'dan çıkınca alt kategorileri gizle
+                    setHoveredCategory(null);
+                  }}
+                  onTouchStart={(e) => {
+                    // Mobile: Touch için alt kategorileri göster
+                    e.preventDefault();
+                    if (hoveredCategory === categoryKey) {
+                      // Zaten açıksa kapat
+                      setHoveredCategory(null);
+                    } else {
+                      // Açık değilse aç
+                      setHoveredCategory(categoryKey);
+                    }
+                  }}
                 >
-                  {IconComponent ? (
-                    <IconComponent className="w-5 h-5" />
-                  ) : (
-                    <span className="text-lg">{category.icon}</span>
+                  <motion.button
+                    onClick={() => {
+                      setSelectedCategory(categoryKey);
+                      setSelectedSubcategory(null);
+                    }}
+                    className={`relative flex flex-col items-center justify-center gap-2 sm:gap-3 w-24 h-24 sm:w-32 sm:h-32 border-2 transition-all duration-300 ${
+                      isSelected
+                        ? 'border-white bg-white/10'
+                        : 'border-white/20 bg-transparent hover:border-white/40 hover:bg-white/5'
+                    }`}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    {/* Icon */}
+                    <div className="text-white">
+                      {IconComponent ? (
+                        <IconComponent className="w-8 h-8 sm:w-12 sm:h-12 text-white" />
+                      ) : category.icon ? (
+                        <span className="text-2xl sm:text-4xl">{category.icon}</span>
+                      ) : null}
+                    </div>
+                    
+                    {/* Category Name */}
+                    <span className={`text-xs sm:text-sm font-medium text-center px-1 sm:px-2 leading-tight ${
+                      isSelected ? 'text-white' : 'text-white/80'
+                    }`}>
+                      {category.name}
+                    </span>
+                    
+                    {/* Selected Indicator */}
+                    {isSelected && (
+                      <motion.div
+                        className="absolute bottom-0 left-0 right-0 h-1 bg-white"
+                        initial={{ scaleX: 0 }}
+                        animate={{ scaleX: 1 }}
+                        transition={{ duration: 0.3 }}
+                      />
+                    )}
+                  </motion.button>
+
+                  {/* Subcategories - Kompakt, Dikdörtgen Şeklinde - Ürünler Bölümünü Kaplamasın */}
+                  {showSubcategories && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 5 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute top-full left-0 sm:left-1/2 sm:-translate-x-1/2 mt-2 w-[180px] xs:w-[200px] sm:w-[220px] bg-black border border-white/20 rounded-md shadow-lg p-2 z-50 max-h-[70vh] overflow-y-auto"
+                      onMouseEnter={() => {
+                        // Dropdown üzerindeyken de açık kal
+                        setHoveredCategory(categoryKey);
+                      }}
+                      onMouseLeave={() => {
+                        // Dropdown'dan çıkınca kapat
+                        setHoveredCategory(null);
+                      }}
+                      onTouchStart={(e) => {
+                        // Mobile: Touch'u dropdown'a yay
+                        e.stopPropagation();
+                      }}
+                    >
+                      <div className="flex flex-col gap-1 max-h-[300px] overflow-y-auto pr-1">
+                        {categorySubs.map((sub) => (
+                          <div key={sub.id} className="flex flex-col">
+                            {/* Ana Alt Kategori - Beyaz, Bold (Odunlu, Elektrikli gibi) */}
+                            {(!sub.parent_subcategory_id && (!sub.children || sub.children.length === 0)) && (
+                              <button
+                                onClick={() => {
+                                  setSelectedCategory(categoryKey);
+                                  setSelectedSubcategory(sub.id);
+                                  setHoveredCategory(null);
+                                }}
+                                className={`text-left px-2 py-1.5 text-xs font-semibold transition-all rounded ${
+                                  selectedSubcategory === sub.id
+                                    ? 'text-white bg-white/10'
+                                    : 'text-white hover:bg-white/5'
+                                }`}
+                              >
+                                {sub.name}
+                              </button>
+                            )}
+                            
+                            {/* Orta Seviye Alt Kategori - Açık Gri (Buharlı, 2D, 3D gibi) */}
+                            {(!sub.parent_subcategory_id && sub.children && sub.children.length > 0) && (
+                              <div className="flex flex-col">
+                                <button
+                                  onClick={() => {
+                                    setSelectedCategory(categoryKey);
+                                    setSelectedSubcategory(sub.id);
+                                    setHoveredCategory(null);
+                                  }}
+                                  className={`text-left px-2 py-1 text-xs font-medium transition-all rounded ${
+                                    selectedSubcategory === sub.id
+                                      ? 'text-gray-300 bg-white/10'
+                                      : 'text-gray-300 hover:bg-white/5'
+                                  }`}
+                                >
+                                  {sub.name}
+                                </button>
+                                
+                                {/* Nested subcategories (Isıtmalı/Isıtmasız) - Kompakt, Yatay */}
+                                <div className="flex flex-row gap-1 ml-2 mt-0.5">
+                                  {sub.children.map((child) => (
+                                    <button
+                                      key={child.id}
+                                      onClick={() => {
+                                        setSelectedCategory(categoryKey);
+                                        setSelectedSubcategory(child.id);
+                                        setHoveredCategory(null);
+                                      }}
+                                      className={`px-1.5 py-0.5 text-[10px] transition-all rounded whitespace-nowrap ${
+                                        selectedSubcategory === child.id
+                                          ? 'text-gray-400 bg-white/5 border border-white/10'
+                                          : 'text-gray-500 hover:text-gray-300 hover:bg-white/5 border border-transparent'
+                                      }`}
+                                    >
+                                      {child.name}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </motion.div>
                   )}
-                  {category.name}
-                </motion.button>
+                </div>
               );
             })}
           </div>
+          )}
 
-          {/* Sort Options */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 px-4">
-            <HiFilter className="text-neutral-400" size={20} />
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="w-full sm:w-auto px-4 py-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm sm:text-base"
-            >
-              <option value="default" className="bg-neutral-900">Varsayılan</option>
-              <option value="price-low" className="bg-neutral-900">Fiyat: Düşükten Yükseğe</option>
-              <option value="price-high" className="bg-neutral-900">Fiyat: Yüksekten Düşüğe</option>
-              <option value="name" className="bg-neutral-900">İsim: A-Z</option>
-            </select>
-          </div>
+          {/* Sort Options - Fiyat Filtreleri Kaldırıldı */}
+          {subcategories.length === 0 && (
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 px-4 border-t border-white/10 pt-6">
+              <HiFilter className="text-white/60" size={20} />
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="w-full sm:w-auto px-4 py-2 bg-white/5 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-white/50 text-sm sm:text-base"
+              >
+                <option value="default" className="bg-black">Varsayılan</option>
+                <option value="name" className="bg-black">İsim: A-Z</option>
+              </select>
+            </div>
+          )}
         </div>
       </motion.section>
 

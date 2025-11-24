@@ -1,4 +1,7 @@
-// Product Categories
+// Product Categories - Legacy/Static Data
+// Note: Categories should be fetched from database using getCategories() from productsService.js
+// This is kept for backward compatibility and fallback
+
 export const categories = [
   {
     id: 'all',
@@ -7,32 +10,46 @@ export const categories = [
     icon: '🏪',
   },
   {
-    id: 'stones-marbles',
-    name: 'Taşlar ve Mermerler',
-    slug: 'taslar-mermerler',
-    icon: '💎',
-    description: 'Doğal taşlar ve kaliteli mermer ürünleri',
+    id: 'dogal-taslar',
+    name: 'Doğal Taşlar',
+    slug: 'dogal-taslar',
+    icon: '🪨',
+    description: 'Doğal taş ürünleri',
   },
   {
-    id: 'bbq',
-    name: 'Barbekü Setleri',
-    slug: 'barbeku-setleri',
+    id: 'somineler',
+    name: 'Şömineler',
+    slug: 'somineler',
+    icon: '🔥',
+    description: 'Şömine modelleri',
+  },
+  {
+    id: 'barbeku',
+    name: 'Barbekü',
+    slug: 'barbeku',
     icon: '🍖',
-    description: 'Modern ve dayanıklı barbekü sistemleri',
+    description: 'Barbekü sistemleri',
   },
   {
-    id: 'fireplaces',
-    name: 'Elektrikli Şömineler',
-    slug: 'elektrikli-somineler',
-    icon: '🏠',
-    description: 'Şık ve fonksiyonel elektrikli şömine modelleri',
+    id: 'firinlar',
+    name: 'Fırınlar',
+    slug: 'firinlar',
+    icon: '🔥',
+    description: 'Fırın modelleri',
   },
   {
-    id: 'stone-products',
-    name: 'Taştan Yapılma Ürünler',
-    slug: 'tastan-urunler',
+    id: 'sobalar',
+    name: 'Sobalar',
+    slug: 'sobalar',
+    icon: '🔥',
+    description: 'Soba modelleri',
+  },
+  {
+    id: 'tas-aksesuarlar',
+    name: 'Taş Aksesuarlar',
+    slug: 'tas-aksesuarlar',
     icon: '🗿',
-    description: 'El işçiliği ile hazırlanan taş ürünler',
+    description: 'Taş aksesuar ürünleri',
   },
 ];
 

@@ -23,7 +23,20 @@ export const getAllProjects = async () => {
 
     return data.map(transformProject);
   } catch (error) {
-    console.error('Error fetching projects:', error);
+    const errorMessage = error?.message || error?.toString() || 'Unknown error';
+    const errorCode = error?.code || error?.hint || '';
+    
+    console.error('Error fetching projects:', {
+      message: errorMessage,
+      code: errorCode,
+      details: error,
+    });
+    
+    // Check if it's a table not found error
+    if (errorMessage.includes('does not exist') || errorMessage.includes('relation') || errorCode === '42P01') {
+      console.warn('⚠️ Projects table does not exist. Please run migration: supabase/migrations/001_initial_schema.sql');
+    }
+    
     return [];
   }
 };
@@ -49,7 +62,21 @@ export const getProjectsByCategory = async (category) => {
 
     return data.map(transformProject);
   } catch (error) {
-    console.error('Error fetching projects by category:', error);
+    const errorMessage = error?.message || error?.toString() || 'Unknown error';
+    const errorCode = error?.code || error?.hint || '';
+    
+    console.error('Error fetching projects by category:', {
+      message: errorMessage,
+      code: errorCode,
+      category,
+      details: error,
+    });
+    
+    // Check if it's a table not found error
+    if (errorMessage.includes('does not exist') || errorMessage.includes('relation') || errorCode === '42P01') {
+      console.warn('⚠️ Projects table does not exist. Please run migration: supabase/migrations/001_initial_schema.sql');
+    }
+    
     return [];
   }
 };
@@ -71,7 +98,16 @@ export const getProjectById = async (id) => {
 
     return transformProject(data);
   } catch (error) {
-    console.error('Error fetching project:', error);
+    const errorMessage = error?.message || error?.toString() || 'Unknown error';
+    const errorCode = error?.code || error?.hint || '';
+    
+    console.error('Error fetching project:', {
+      message: errorMessage,
+      code: errorCode,
+      id,
+      details: error,
+    });
+    
     return null;
   }
 };
@@ -93,7 +129,20 @@ export const getFeaturedProjects = async (count = 6) => {
 
     return data.map(transformProject);
   } catch (error) {
-    console.error('Error fetching featured projects:', error);
+    const errorMessage = error?.message || error?.toString() || 'Unknown error';
+    const errorCode = error?.code || error?.hint || '';
+    
+    console.error('Error fetching featured projects:', {
+      message: errorMessage,
+      code: errorCode,
+      details: error,
+    });
+    
+    // Check if it's a table not found error
+    if (errorMessage.includes('does not exist') || errorMessage.includes('relation') || errorCode === '42P01') {
+      console.warn('⚠️ Projects table does not exist. Please run migration: supabase/migrations/001_initial_schema.sql');
+    }
+    
     return [];
   }
 };
@@ -115,7 +164,15 @@ export const createProject = async (projectData) => {
 
     return transformProject(data);
   } catch (error) {
-    console.error('Error creating project:', error);
+    const errorMessage = error?.message || error?.toString() || 'Unknown error';
+    const errorCode = error?.code || error?.hint || '';
+    
+    console.error('Error creating project:', {
+      message: errorMessage,
+      code: errorCode,
+      details: error,
+    });
+    
     throw error;
   }
 };
@@ -139,7 +196,16 @@ export const updateProject = async (id, updates) => {
 
     return transformProject(data);
   } catch (error) {
-    console.error('Error updating project:', error);
+    const errorMessage = error?.message || error?.toString() || 'Unknown error';
+    const errorCode = error?.code || error?.hint || '';
+    
+    console.error('Error updating project:', {
+      message: errorMessage,
+      code: errorCode,
+      id,
+      details: error,
+    });
+    
     throw error;
   }
 };
@@ -160,7 +226,16 @@ export const deleteProject = async (id) => {
 
     return true;
   } catch (error) {
-    console.error('Error deleting project:', error);
+    const errorMessage = error?.message || error?.toString() || 'Unknown error';
+    const errorCode = error?.code || error?.hint || '';
+    
+    console.error('Error deleting project:', {
+      message: errorMessage,
+      code: errorCode,
+      id,
+      details: error,
+    });
+    
     throw error;
   }
 };
