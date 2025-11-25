@@ -41,6 +41,7 @@ export default function ProductsPage() {
   const [lastScrollY, setLastScrollY] = useState(0);
   const [isCategoryHovered, setIsCategoryHovered] = useState(false);
   const categorySectionRef = useRef(null);
+  const hoverTimeoutRef = useRef(null); // Dropdown kapanma timeout'u için
 
   // Fetch categories from database
   useEffect(() => {
@@ -175,6 +176,15 @@ export default function ProductsPage() {
       window.removeEventListener('scroll', handleScroll);
     };
   }, [lastScrollY, isCategoryHovered]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Filter products by search
   let filteredProducts = products;
@@ -342,12 +352,25 @@ export default function ProductsPage() {
                   key={categoryKey}
                   className="relative"
                   onMouseEnter={() => {
-                    // Desktop: hover'da alt kategorileri göster
+                    // Desktop: hover'da alt kategorileri göster - timeout'u temizle
+                    if (hoverTimeoutRef.current) {
+                      clearTimeout(hoverTimeoutRef.current);
+                      hoverTimeoutRef.current = null;
+                    }
                     setHoveredCategory(categoryKey);
                   }}
-                  onMouseLeave={() => {
-                    // Desktop: hover'dan çıkınca alt kategorileri gizle
-                    setHoveredCategory(null);
+                  onMouseLeave={(e) => {
+                    // Desktop: hover'dan çıkınca kapanmayı geciktir
+                    // Eğer dropdown'a geçiyorsak kapanmasın
+                    const relatedTarget = e.relatedTarget;
+                    if (relatedTarget && (relatedTarget.closest && (relatedTarget.closest('.dropdown-menu') || relatedTarget.closest(`[data-category="${categoryKey}"]`)))) {
+                      return; // Dropdown'a veya aynı kategori elementine geçiyor, kapanma
+                    }
+                    
+                    // Kapanmayı geciktir - kullanıcı dropdown'a geçebilir
+                    hoverTimeoutRef.current = setTimeout(() => {
+                      setHoveredCategory(null);
+                    }, 200);
                   }}
                   onTouchStart={(e) => {
                     // Mobile: Touch için alt kategorileri göster
@@ -366,6 +389,7 @@ export default function ProductsPage() {
                       setSelectedCategory(categoryKey);
                       setSelectedSubcategory(null);
                     }}
+                    data-category={categoryKey}
                     className={`relative flex flex-col items-center justify-center gap-2 sm:gap-3 w-24 h-24 sm:w-32 sm:h-32 border-2 transition-all duration-300 ${
                       isSelected
                         ? 'border-white bg-white/10'
@@ -408,19 +432,38 @@ export default function ProductsPage() {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: 5 }}
                       transition={{ duration: 0.15 }}
-                      className="absolute top-full left-0 sm:left-1/2 sm:-translate-x-1/2 mt-2 w-[180px] xs:w-[200px] sm:w-[220px] bg-black border border-white/20 rounded-md shadow-lg p-2 z-50 max-h-[70vh] overflow-y-auto"
+                      className="dropdown-menu absolute top-full left-0 sm:left-1/2 sm:-translate-x-1/2 mt-0 sm:mt-1 w-[180px] xs:w-[200px] sm:w-[220px] bg-black border border-white/20 rounded-md shadow-lg p-2 z-50 max-h-[70vh] overflow-y-auto"
                       onMouseEnter={() => {
-                        // Dropdown üzerindeyken de açık kal
+                        // Dropdown üzerindeyken de açık kal - timeout'u temizle
+                        if (hoverTimeoutRef.current) {
+                          clearTimeout(hoverTimeoutRef.current);
+                          hoverTimeoutRef.current = null;
+                        }
                         setHoveredCategory(categoryKey);
                       }}
-                      onMouseLeave={() => {
-                        // Dropdown'dan çıkınca kapat
-                        setHoveredCategory(null);
+                      onMouseLeave={(e) => {
+                        // Dropdown'dan çıkınca kapat - gecikme ile
+                        const relatedTarget = e.relatedTarget;
+                        if (relatedTarget && relatedTarget.closest && (relatedTarget.closest(`[data-category="${categoryKey}"]`) || relatedTarget.closest('.dropdown-menu'))) {
+                          return; // Ana kategori kutusuna veya başka dropdown'a geçiyor
+                        }
+                        hoverTimeoutRef.current = setTimeout(() => {
+                          setHoveredCategory(null);
+                        }, 150);
                       }}
                       onTouchStart={(e) => {
-                        // Mobile: Touch'u dropdown'a yay
+                        // Mobile: Touch'u dropdown'a yay - kapanmayı önle
+                        e.stopPropagation();
+                        if (hoverTimeoutRef.current) {
+                          clearTimeout(hoverTimeoutRef.current);
+                          hoverTimeoutRef.current = null;
+                        }
+                      }}
+                      onTouchEnd={(e) => {
+                        // Mobile: Touch bittiğinde kapanmasın
                         e.stopPropagation();
                       }}
+                      data-category={categoryKey}
                     >
                       <div className="flex flex-col gap-1 max-h-[300px] overflow-y-auto pr-1">
                         {categorySubs.map((sub) => (
@@ -431,7 +474,14 @@ export default function ProductsPage() {
                                 onClick={() => {
                                   setSelectedCategory(categoryKey);
                                   setSelectedSubcategory(sub.id);
-                                  setHoveredCategory(null);
+                                  // Mobile'da dropdown'ı kapat, desktop'ta hover ile kalabilir
+                                  if (window.innerWidth < 640) {
+                                    setHoveredCategory(null);
+                                  }
+                                }}
+                                onTouchEnd={(e) => {
+                                  // Mobile: Touch bittiğinde dropdown'ın kapanmasını engelle
+                                  e.stopPropagation();
                                 }}
                                 className={`text-left px-2 py-1.5 text-xs font-semibold transition-all rounded ${
                                   selectedSubcategory === sub.id
@@ -450,7 +500,13 @@ export default function ProductsPage() {
                                   onClick={() => {
                                     setSelectedCategory(categoryKey);
                                     setSelectedSubcategory(sub.id);
-                                    setHoveredCategory(null);
+                                    // Mobile'da dropdown'ı kapat
+                                    if (window.innerWidth < 640) {
+                                      setHoveredCategory(null);
+                                    }
+                                  }}
+                                  onTouchEnd={(e) => {
+                                    e.stopPropagation();
                                   }}
                                   className={`text-left px-2 py-1 text-xs font-medium transition-all rounded ${
                                     selectedSubcategory === sub.id
@@ -469,7 +525,13 @@ export default function ProductsPage() {
                                       onClick={() => {
                                         setSelectedCategory(categoryKey);
                                         setSelectedSubcategory(child.id);
-                                        setHoveredCategory(null);
+                                        // Mobile'da dropdown'ı kapat
+                                        if (window.innerWidth < 640) {
+                                          setHoveredCategory(null);
+                                        }
+                                      }}
+                                      onTouchEnd={(e) => {
+                                        e.stopPropagation();
                                       }}
                                       className={`px-1.5 py-0.5 text-[10px] transition-all rounded whitespace-nowrap ${
                                         selectedSubcategory === child.id

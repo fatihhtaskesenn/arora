@@ -13,7 +13,6 @@ import { getFeaturedProjects } from '../lib/projectsService';
  * Animasyonlu emojiler: 🪨 💎 🗿 ⬡
  */
 
-const floatingEmojis = ['🪨', '💎', '🗿', '⬡'];
 
 // Değişen kelimeler dizisi
 const changingWords = [
@@ -32,13 +31,6 @@ const HeroSection = () => {
   const [isMounted, setIsMounted] = useState(false);
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
 
-  // Sabit emoji pozisyonları (hydration hatası önlemek için)
-  const emojiPositions = [
-    { left: 15, top: 20 },
-    { left: 85, top: 45 },
-    { left: 25, top: 60 },
-    { left: 75, top: 80 },
-  ];
 
   useEffect(() => {
     setIsMounted(true);
@@ -157,39 +149,6 @@ const HeroSection = () => {
         </div>
       )}
 
-      {/* Animated Emojis Background - Sadece client-side render */}
-      {isMounted && (
-        <div className="absolute inset-0 z-[5] overflow-hidden pointer-events-none">
-          {floatingEmojis.map((emoji, index) => {
-            const position = emojiPositions[index];
-            const durations = [22, 25, 28, 20];
-            
-            return (
-              <motion.div
-                key={index}
-                className="absolute text-6xl md:text-8xl opacity-20"
-                style={{
-                  left: `${position.left}%`,
-                  top: `${position.top}%`,
-                }}
-                animate={{
-                  y: [0, -50, 50, 0],
-                  x: [0, 30, -30, 0],
-                  rotate: [0, 360],
-                }}
-                transition={{
-                  duration: durations[index],
-                  repeat: Infinity,
-                  repeatType: 'reverse',
-                  ease: 'easeInOut',
-                }}
-              >
-                {emoji}
-              </motion.div>
-            );
-          })}
-        </div>
-      )}
 
       {/* Main Content */}
       <div className="relative z-20 flex-1 flex flex-col justify-center items-center min-h-screen px-4 sm:px-6 lg:px-8 py-20">
@@ -231,7 +190,7 @@ const HeroSection = () => {
             className="mb-12"
           >
             <p className="text-xl sm:text-2xl md:text-3xl text-neutral-300 font-light">
-              Doğal taş ve şömine uzmanlarıyız.
+              Hayal et, birlikte inşa edelim
             </p>
           </motion.div>
 
