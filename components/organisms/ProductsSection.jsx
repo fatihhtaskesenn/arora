@@ -18,6 +18,13 @@ const ProductsSection = () => {
 
   useEffect(() => {
     let isMounted = true;
+    const timeoutId = setTimeout(() => {
+      if (isMounted) {
+        console.warn('⚠️ Products fetch timeout, using empty array');
+        setStoneProducts([]);
+        setLoading(false);
+      }
+    }, 10000); // 10 saniye timeout
 
     const fetchProducts = async () => {
       try {
@@ -25,6 +32,8 @@ const ProductsSection = () => {
         
         console.log('🔄 Fetching fresh products from Supabase...');
         const products = await getAllProducts();
+        
+        clearTimeout(timeoutId);
         
         if (!isMounted) return;
         
@@ -37,8 +46,11 @@ const ProductsSection = () => {
           setStoneProducts([]);
         }
       } catch (error) {
+        clearTimeout(timeoutId);
         console.error('❌ Error loading products from Supabase:', error);
-        setStoneProducts([]);
+        if (isMounted) {
+          setStoneProducts([]);
+        }
       } finally {
         if (isMounted) {
           setLoading(false);
@@ -50,6 +62,7 @@ const ProductsSection = () => {
 
     return () => {
       isMounted = false;
+      clearTimeout(timeoutId);
     };
   }, []);
 

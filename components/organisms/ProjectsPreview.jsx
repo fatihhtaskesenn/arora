@@ -22,6 +22,13 @@ const ProjectsPreview = () => {
   // Fetch latest 6 projects from Supabase on component mount
   useEffect(() => {
     let isMounted = true;
+    const timeoutId = setTimeout(() => {
+      if (isMounted) {
+        console.warn('⚠️ Projects fetch timeout, using empty array');
+        setDisplayedProjects([]);
+        setLoading(false);
+      }
+    }, 10000); // 10 saniye timeout
 
     const fetchProjects = async () => {
       try {
@@ -29,6 +36,8 @@ const ProjectsPreview = () => {
         
         console.log('🔄 Fetching projects from Supabase...');
         const projects = await getFeaturedProjects(6);
+        
+        clearTimeout(timeoutId);
         
         if (!isMounted) return;
         
@@ -45,8 +54,11 @@ const ProjectsPreview = () => {
           setDisplayedProjects([]);
         }
       } catch (error) {
+        clearTimeout(timeoutId);
         console.error('❌ Error loading projects from Supabase:', error);
-        setDisplayedProjects([]);
+        if (isMounted) {
+          setDisplayedProjects([]);
+        }
       } finally {
         if (isMounted) {
           setLoading(false);
@@ -58,6 +70,7 @@ const ProjectsPreview = () => {
 
     return () => {
       isMounted = false;
+      clearTimeout(timeoutId);
     };
   }, []);
 

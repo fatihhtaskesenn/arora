@@ -2,490 +2,295 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import Image from 'next/image';
 import Link from 'next/link';
-import { HiChevronLeft, HiChevronRight, HiArrowRight } from 'react-icons/hi';
+import { HiArrowDown, HiArrowRight } from 'react-icons/hi';
 import { getFeaturedProjects } from '../lib/projectsService';
 
 /**
- * HeroSection Component - Project-focused hero with immersive slider
+ * HeroSection Component - Yayındaki siteye göre yeniden yazıldı
+ * Ana başlık: "Hayalinizdeki [Kelime] Oluşturuyoruz" - Kelimeler otomatik değişiyor
+ * Alt başlık: "Doğal taş ve şömine uzmanlarıyız."
+ * Animasyonlu emojiler: 🪨 💎 🗿 ⬡
  */
 
-// Deterministic random function (seed-based) to prevent hydration mismatch
-function seededRandom(seed) {
-  const x = Math.sin(seed) * 10000;
-  return x - Math.floor(x);
-}
+const floatingEmojis = ['🪨', '💎', '🗿', '⬡'];
 
-// Pre-calculate positions for stones and particles (deterministic)
-// Round values to prevent hydration mismatch
-const stonePositions = Array.from({ length: 8 }, (_, i) => ({
-  left: Math.round((10 + seededRandom(i * 7) * 80) * 100) / 100,
-  top: Math.round((10 + seededRandom(i * 11) * 80) * 100) / 100,
-  fontSize: Math.round((20 + seededRandom(i * 13) * 30) * 100) / 100,
-  x: Math.round((seededRandom(i * 17) * 20 - 10) * 100) / 100,
-  duration: Math.round((8 + seededRandom(i * 19) * 4) * 100) / 100,
-  delay: Math.round((seededRandom(i * 23) * 3) * 100) / 100,
-}));
-
-const particlePositions = Array.from({ length: 20 }, (_, i) => ({
-  left: Math.round((seededRandom(i * 29) * 100) * 100) / 100,
-  top: Math.round((seededRandom(i * 31) * 100) * 100) / 100,
-  duration: Math.round((4 + seededRandom(i * 37) * 3) * 100) / 100,
-  delay: Math.round((seededRandom(i * 41) * 2) * 100) / 100,
-}));
+// Değişen kelimeler dizisi
+const changingWords = [
+  { text: 'Barbeküleri', suffix: 'Oluşturuyoruz' },
+  { text: 'Şömineleri', suffix: 'Oluşturuyoruz' },
+  { text: 'Mimariyi', suffix: 'Oluşturuyoruz' },
+  { text: 'Fırınları', suffix: 'Oluşturuyoruz' },
+  { text: 'Mekanları', suffix: 'Oluşturuyoruz' },
+  { text: 'Bahçeleri', suffix: 'Oluşturuyoruz' },
+];
 
 const HeroSection = () => {
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [direction, setDirection] = useState(0);
-  const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentProjectIndex, setCurrentProjectIndex] = useState(0);
+  const [isMounted, setIsMounted] = useState(false);
+  const [currentWordIndex, setCurrentWordIndex] = useState(0);
 
-  // Döngüsel kelimeler
-  const rotatingWords = ['Barbekü', 'Elektrikli Şömine', 'Doğal Taş', 'Taştan Yapılma Ürünler'];
+  // Sabit emoji pozisyonları (hydration hatası önlemek için)
+  const emojiPositions = [
+    { left: 15, top: 20 },
+    { left: 85, top: 45 },
+    { left: 25, top: 60 },
+    { left: 75, top: 80 },
+  ];
 
-  // Fetch projects from Supabase
   useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Kelime değiştirme efekti - her 3 saniyede bir
+  useEffect(() => {
+    const wordInterval = setInterval(() => {
+      setCurrentWordIndex((prev) => (prev + 1) % changingWords.length);
+    }, 3000); // 3 saniye
+
+    return () => clearInterval(wordInterval);
+  }, []);
+
+  // Tüm projeleri al
+  useEffect(() => {
+    let isComponentMounted = true;
+    const timeoutId = setTimeout(() => {
+      if (isComponentMounted) {
+        setProjects([]);
+        setLoading(false);
+      }
+    }, 10000);
+
     const fetchProjects = async () => {
       try {
         setLoading(true);
-        const data = await getFeaturedProjects(6);
+        const data = await getFeaturedProjects(20); // Tüm projeleri al (maksimum 20)
+        
+        clearTimeout(timeoutId);
+        
+        if (!isComponentMounted) return;
         
         if (data && data.length > 0) {
-          // Transform Supabase data to match component format
-          const transformedProjects = data.map(project => ({
-            image: project.image,
-            title: project.title || 'Proje',
-            category: project.category || 'Genel',
-          }));
-          setProjects(transformedProjects);
-        } else {
-          // Fallback to empty array if no projects
-          setProjects([]);
+          setProjects(data);
         }
       } catch (error) {
-        console.error('Error loading projects for hero:', error);
-        setProjects([]);
+        clearTimeout(timeoutId);
+        console.error('Error loading hero projects:', error);
       } finally {
-        setLoading(false);
+        if (isComponentMounted) {
+          setLoading(false);
+        }
       }
     };
 
     fetchProjects();
+
+    return () => {
+      isComponentMounted = false;
+      clearTimeout(timeoutId);
+    };
   }, []);
 
-  // Auto slide
+  // Proje görsellerini otomatik olarak değiştir - her 5 saniyede bir
   useEffect(() => {
     if (projects.length === 0) return;
-    
-    const timer = setInterval(() => {
-      handleNext();
-    }, 5000);
-    return () => clearInterval(timer);
-  }, [currentSlide, projects.length]);
 
-  // Rotating words animation
-  useEffect(() => {
-    const wordTimer = setInterval(() => {
-      setCurrentWordIndex((prev) => (prev + 1) % rotatingWords.length);
-    }, 3000);
-    return () => clearInterval(wordTimer);
-  }, []);
+    // Geçerli görseli olan projeleri filtrele
+    const validProjects = projects.filter(p => p?.image);
+    if (validProjects.length === 0) return;
 
-  const handleNext = () => {
-    if (projects.length === 0) return;
-    setDirection(1);
-    setCurrentSlide((prev) => (prev + 1) % projects.length);
-  };
+    const projectInterval = setInterval(() => {
+      setCurrentProjectIndex((prev) => {
+        // Sonraki geçerli projeye geç
+        const nextIndex = (prev + 1) % projects.length;
+        // Eğer bir sonraki projenin görseli yoksa, bir sonrakine geç
+        if (!projects[nextIndex]?.image) {
+          return (nextIndex + 1) % projects.length;
+        }
+        return nextIndex;
+      });
+    }, 5000); // 5 saniye
 
-  const handlePrev = () => {
-    if (projects.length === 0) return;
-    setDirection(-1);
-    setCurrentSlide((prev) => (prev - 1 + projects.length) % projects.length);
-  };
+    return () => clearInterval(projectInterval);
+  }, [projects]);
 
-  const slideVariants = {
-    enter: (direction) => ({
-      x: direction > 0 ? 1000 : -1000,
-      opacity: 0,
-    }),
-    center: {
-      zIndex: 1,
-      x: 0,
-      opacity: 1,
-    },
-    exit: (direction) => ({
-      zIndex: 0,
-      x: direction < 0 ? 1000 : -1000,
-      opacity: 0,
-    }),
+  const scrollToProducts = () => {
+    const productsSection = document.getElementById('products-section');
+    if (productsSection) {
+      productsSection.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   return (
-    <section className="relative min-h-screen flex items-start md:items-center overflow-x-hidden bg-gradient-to-br from-slate-800 via-slate-900 to-neutral-950 pt-24 md:pt-32">
-      {/* Animated Stone Texture Background */}
-      <div className="absolute inset-0 opacity-30">
-        {/* Organic stone texture patterns */}
-        <motion.div
-          className="absolute inset-0"
-          style={{
-            backgroundImage: `
-              radial-gradient(ellipse at 20% 30%, rgba(16, 185, 129, 0.15) 0%, transparent 50%),
-              radial-gradient(ellipse at 80% 70%, rgba(225, 29, 72, 0.12) 0%, transparent 50%),
-              radial-gradient(circle at 50% 50%, rgba(100, 116, 139, 0.08) 0%, transparent 70%)
-            `,
-            backgroundSize: '100% 100%, 100% 100%, 100% 100%',
-          }}
-          animate={{
-            backgroundPosition: ['0% 0%, 100% 100%, 50% 50%', '100% 100%, 0% 0%, 50% 50%', '0% 0%, 100% 100%, 50% 50%'],
-          }}
-          transition={{
-            duration: 20,
-            repeat: Infinity,
-            ease: 'easeInOut',
-          }}
-        />
-        
-        {/* Marble vein effect */}
-        <motion.div
-          className="absolute inset-0 opacity-40"
-          style={{
-            background: 'linear-gradient(45deg, transparent 30%, rgba(16, 185, 129, 0.1) 50%, transparent 70%)',
-            backgroundSize: '200% 200%',
-          }}
-          animate={{
-            backgroundPosition: ['0% 0%', '100% 100%'],
-          }}
-          transition={{
-            duration: 15,
-            repeat: Infinity,
-            ease: 'linear',
-          }}
-        />
-        
-        {/* Stone grain texture */}
-        <div
-          className="absolute inset-0 opacity-20"
-          style={{
-            backgroundImage: 'url("data:image/svg+xml,%3Csvg width="100" height="100" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noise"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" /%3E%3C/filter%3E%3Crect width="100" height="100" filter="url(%23noise)" opacity="0.3"/%3E%3C/svg%3E")',
-            backgroundSize: '200px 200px',
-          }}
-        />
-      </div>
-      
-      {/* Floating stone icons and particles */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {/* Stone/Rock Icons */}
-        {stonePositions.map((pos, i) => (
-          <motion.div
-            key={`stone-${i}`}
-            className="absolute text-emerald-400/20"
-            style={{
-              left: `${pos.left}%`,
-              top: `${pos.top}%`,
-              fontSize: `${pos.fontSize}px`,
-            }}
-            animate={{
-              y: [0, -40, 0],
-              x: [0, pos.x, 0],
-              rotate: [0, 360],
-              opacity: [0.2, 0.5, 0.2],
-            }}
-            transition={{
-              duration: pos.duration,
-              repeat: Infinity,
-              delay: pos.delay,
-              ease: 'easeInOut',
-            }}
-          >
-            {['🪨', '💎', '🗿', '⬡'][i % 4]}
-          </motion.div>
-        ))}
-        
-        {/* Small particles */}
-        {particlePositions.map((pos, i) => (
-          <motion.div
-            key={`particle-${i}`}
-            className="absolute w-1.5 h-1.5 bg-emerald-400/40 rounded-full"
-            style={{
-              left: `${pos.left}%`,
-              top: `${pos.top}%`,
-            }}
-            animate={{
-              y: [0, -50, 0],
-              opacity: [0.2, 0.6, 0.2],
-              scale: [1, 2, 1],
-            }}
-            transition={{
-              duration: pos.duration,
-              repeat: Infinity,
-              delay: pos.delay,
-            }}
-          />
-        ))}
-      </div>
+    <section className="relative w-full min-h-screen flex flex-col overflow-hidden bg-gradient-to-br from-neutral-900 via-neutral-800 to-black">
+      {/* Background Image Slider - Otomatik dönen proje görselleri */}
+      {!loading && projects.length > 0 && projects[currentProjectIndex]?.image && (
+        <div className="absolute inset-0 z-0">
+          <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent z-10" />
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentProjectIndex}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 1.5, ease: 'easeInOut' }}
+              className="absolute inset-0"
+            >
+              <img
+                src={projects[currentProjectIndex]?.image}
+                alt={projects[currentProjectIndex]?.title || 'ARORA Proje Görseli'}
+                className="absolute inset-0 w-full h-full object-cover opacity-60"
+                loading="eager"
+                onError={(e) => {
+                  // Sessizce hata yönetimi - console'a yazdırma
+                  e.target.style.display = 'none';
+                }}
+                onLoad={(e) => {
+                  // Görsel başarıyla yüklendiğinde opacity'yi ayarla
+                  e.target.style.opacity = '0.6';
+                }}
+              />
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      )}
 
-      <div className="container mx-auto px-0 sm:px-4 lg:px-8 py-0 sm:py-12 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 lg:gap-12 items-center max-w-full">
-          {/* Left Content - Güzelleştirilmiş Tasarım - Mobile: Bottom, Desktop: Left */}
-          <motion.div
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8 }}
-            className="lg:col-span-3 text-left relative z-20 order-2 lg:order-1 px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 pb-6 sm:pb-8"
-          >
-            {/* Arka Plan - Gradient ve Glassmorphism */}
-            <div className="absolute inset-0 bg-gradient-to-br from-slate-900/80 via-slate-800/70 to-slate-900/80 backdrop-blur-xl rounded-2xl border border-slate-700/50 shadow-2xl" />
-            <div className="absolute inset-0 bg-gradient-to-t from-emerald-500/5 via-transparent to-transparent rounded-2xl" />
+      {/* Animated Emojis Background - Sadece client-side render */}
+      {isMounted && (
+        <div className="absolute inset-0 z-[5] overflow-hidden pointer-events-none">
+          {floatingEmojis.map((emoji, index) => {
+            const position = emojiPositions[index];
+            const durations = [22, 25, 28, 20];
             
-            {/* İçerik */}
-            <div className="relative z-10 space-y-4 sm:space-y-5">
-              {/* Main Heading with Rotating Words */}
+            return (
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2, duration: 0.6 }}
+                key={index}
+                className="absolute text-6xl md:text-8xl opacity-20"
+                style={{
+                  left: `${position.left}%`,
+                  top: `${position.top}%`,
+                }}
+                animate={{
+                  y: [0, -50, 50, 0],
+                  x: [0, 30, -30, 0],
+                  rotate: [0, 360],
+                }}
+                transition={{
+                  duration: durations[index],
+                  repeat: Infinity,
+                  repeatType: 'reverse',
+                  ease: 'easeInOut',
+                }}
               >
-                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-slate-100 mb-3 leading-tight">
-                  Hayalinizdeki
-                  <br />
-                  <AnimatePresence mode="wait">
-                    <motion.span
-                      key={currentWordIndex}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -20 }}
-                      transition={{ duration: 0.5 }}
-                      className="inline-block bg-gradient-to-r from-emerald-400 via-emerald-500 to-emerald-600 bg-clip-text text-transparent"
-                    >
-                      {rotatingWords[currentWordIndex]}
-                    </motion.span>
-                  </AnimatePresence>
-                  <br />
-                  Oluşturuyoruz
-                </h1>
+                {emoji}
               </motion.div>
+            );
+          })}
+        </div>
+      )}
 
-              {/* Güzelleştirilmiş Açıklama */}
-              <motion.p
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4, duration: 0.6 }}
-                className="text-sm sm:text-base text-slate-300 leading-relaxed max-w-full"
-              >
-                Doğal taş ve şömine uzmanlarıyız.
-              </motion.p>
-            </div>
+      {/* Main Content */}
+      <div className="relative z-20 flex-1 flex flex-col justify-center items-center min-h-screen px-4 sm:px-6 lg:px-8 py-20">
+        <div className="container mx-auto max-w-6xl text-center">
+          {/* Main Heading - Değişen kelime ile */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="mb-6"
+          >
+            <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-extrabold text-white leading-tight mb-4">
+              Hayalinizdeki
+              <br />
+              <span className="relative inline-block min-w-[200px] sm:min-w-[300px] md:min-w-[400px] lg:min-w-[500px] xl:min-w-[600px] text-center">
+                <AnimatePresence mode="wait">
+                  <motion.span
+                    key={currentWordIndex}
+                    initial={{ opacity: 0, y: 50, scale: 0.8 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -50, scale: 0.8 }}
+                    transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
+                    className="inline-block bg-gradient-to-r from-orange-500 via-orange-400 to-orange-600 bg-clip-text text-transparent"
+                  >
+                    {changingWords[currentWordIndex].text}
+                  </motion.span>
+                </AnimatePresence>
+              </span>
+              <br />
+              Oluşturuyoruz
+            </h1>
           </motion.div>
 
-          {/* Right Content - ULTRA LARGE Project Slider - Mobile: Top, Desktop: Right */}
+          {/* Subtitle */}
           <motion.div
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
-            className="lg:col-span-9 relative z-10 w-full order-1 lg:order-2"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="mb-12"
           >
-            <div className="relative w-full rounded-none sm:rounded-2xl lg:rounded-3xl overflow-hidden shadow-xl sm:shadow-2xl border-0 sm:border border-emerald-500/20 sm:border-emerald-500/30">
-              {/* Slider */}
-              <div className="relative aspect-[4/3] sm:aspect-[16/9] lg:aspect-[21/9] w-full">
-                {loading || projects.length === 0 ? (
-                  <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-neutral-800 via-neutral-900 to-black">
-                    <div className="animate-pulse">
-                      <svg className="w-16 h-16 text-neutral-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                    </div>
-                  </div>
-                ) : (
-                  <AnimatePresence initial={false} custom={direction}>
-                    <motion.div
-                      key={currentSlide}
-                      custom={direction}
-                      variants={slideVariants}
-                      initial="enter"
-                      animate="center"
-                      exit="exit"
-                      transition={{
-                        x: { type: "spring", stiffness: 300, damping: 30 },
-                        opacity: { duration: 0.5 }
-                      }}
-                      className="absolute inset-0"
-                    >
-                      <img
-                        src={projects[currentSlide]?.image}
-                        alt={projects[currentSlide]?.title || 'Proje'}
-                        className="absolute inset-0 w-full h-full object-cover"
-                        loading="eager"
-                        fetchPriority="high"
-                        style={{ opacity: 0, transition: 'opacity 0.6s ease-in-out', willChange: 'opacity' }}
-                        onLoad={(e) => {
-                          e.target.style.opacity = 1;
-                        }}
-                        onError={(e) => {
-                          console.error('Slider image failed:', projects[currentSlide]?.image);
-                          e.target.style.opacity = 1;
-                        }}
-                      />
-                      {/* Light Gradient Overlay - Minimal */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
-                    </motion.div>
-                  </AnimatePresence>
-                )}
+            <p className="text-xl sm:text-2xl md:text-3xl text-neutral-300 font-light">
+              Doğal taş ve şömine uzmanlarıyız.
+            </p>
+          </motion.div>
 
-                {/* Navigation Buttons - Desktop Only */}
-                {!loading && projects.length > 0 && (
-                  <>
-                    <button
-                      onClick={handlePrev}
-                      className="hidden md:flex absolute left-4 lg:left-6 top-1/2 -translate-y-1/2 z-10 w-12 h-12 lg:w-14 lg:h-14 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded-full items-center justify-center transition-all group shadow-lg"
-                      aria-label="Previous slide"
-                    >
-                      <HiChevronLeft className="text-white text-2xl lg:text-3xl group-hover:-translate-x-0.5 transition-transform" />
-                    </button>
-                    <button
-                      onClick={handleNext}
-                      className="hidden md:flex absolute right-4 lg:right-6 top-1/2 -translate-y-1/2 z-10 w-12 h-12 lg:w-14 lg:h-14 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded-full items-center justify-center transition-all group shadow-lg"
-                      aria-label="Next slide"
-                    >
-                      <HiChevronRight className="text-white text-2xl lg:text-3xl group-hover:translate-x-0.5 transition-transform" />
-                    </button>
-                  </>
-                )}
-
-                {/* Dots Indicator - Minimal */}
-                {!loading && projects.length > 0 && (
-                  <div className="absolute bottom-3 sm:bottom-4 lg:bottom-6 right-3 sm:right-4 lg:right-6 z-10 flex gap-1.5 sm:gap-2">
-                    {projects.map((_, index) => (
-                      <button
-                        key={index}
-                        onClick={() => {
-                          setDirection(index > currentSlide ? 1 : -1);
-                          setCurrentSlide(index);
-                        }}
-                        className={`transition-all duration-300 rounded-full ${
-                          index === currentSlide
-                            ? 'bg-white w-6 sm:w-8 h-2 sm:h-2.5'
-                            : 'bg-white/40 hover:bg-white/60 w-2 h-2'
-                        }`}
-                        aria-label={`Go to slide ${index + 1}`}
-                      />
-                    ))}
-                  </div>
-                )}
-
-                {/* View All Projects Button - Hidden on mobile, shown on desktop */}
-                <motion.div
-                  className="hidden md:block absolute top-4 lg:top-6 right-4 lg:right-6 z-10"
-                  initial={{ opacity: 0, scale: 0 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 1, duration: 0.5 }}
-                >
-                  <Link href="/projects">
-                    <button className="px-4 py-2 bg-black/60 hover:bg-black/80 backdrop-blur-sm border border-white/20 text-white font-semibold rounded-full text-xs lg:text-sm hover:shadow-lg transition-all duration-300 flex items-center gap-1.5 group">
-                      Tüm Projeler
-                      <HiArrowRight className="group-hover:translate-x-1 transition-transform text-sm" />
-                    </button>
-                  </Link>
-                </motion.div>
-              </div>
-            </div>
-
-            {/* Project Info Section - Below Slider - Hidden on mobile */}
-            {!loading && projects.length > 0 && (
-              <motion.div
-                className="hidden md:block mt-4 lg:mt-6 p-4 lg:p-6 bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-md rounded-xl lg:rounded-2xl border border-emerald-500/20"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1 }}
+          {/* Action Buttons */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
+            className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16"
+          >
+            <Link href="/projects">
+              <motion.button
+                className="group inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold text-lg rounded-full shadow-xl hover:shadow-orange-500/50 transition-all"
+                whileHover={{ scale: 1.05, y: -2 }}
+                whileTap={{ scale: 0.98 }}
               >
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={currentSlide}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    {/* Category Badge */}
-                    <div className="inline-block mb-2 lg:mb-3">
-                      <span className="px-3 py-1.5 lg:px-4 lg:py-2 bg-gradient-to-r from-emerald-500/20 to-rose-600/20 border border-emerald-500/30 text-emerald-300 text-xs lg:text-sm font-semibold rounded-full">
-                        {projects[currentSlide]?.category || 'Genel'}
-                      </span>
-                    </div>
-                    
-                    {/* Project Title */}
-                    <h3 className="text-lg lg:text-2xl xl:text-3xl font-bold text-white mb-1 lg:mb-2 leading-tight">
-                      {projects[currentSlide]?.title || 'Proje'}
-                    </h3>
-                    
-                    {/* Project Number */}
-                    <p className="text-slate-400 text-xs lg:text-sm font-medium">
-                      Proje #{currentSlide + 1} / {projects.length}
-                    </p>
-                  </motion.div>
-                </AnimatePresence>
-              </motion.div>
-            )}
+                <span>Tüm Projeler</span>
+                <HiArrowRight 
+                  className="group-hover:translate-x-1 transition-transform" 
+                  size={24} 
+                />
+              </motion.button>
+            </Link>
 
-            {/* Thumbnail Preview - Desktop Only */}
-            {!loading && projects.length > 0 && (
-              <motion.div
-                className="hidden xl:flex gap-3 mt-4 justify-center"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1.2 }}
-              >
-                {projects.map((project, index) => (
-                  <motion.button
-                    key={index}
-                    onClick={() => {
-                      setDirection(index > currentSlide ? 1 : -1);
-                      setCurrentSlide(index);
-                    }}
-                    className={`relative w-20 h-14 rounded-lg overflow-hidden transition-all duration-300 border-2 ${
-                      index === currentSlide
-                        ? 'border-emerald-500 ring-1 ring-emerald-200 scale-105 shadow-md'
-                        : 'border-slate-200/50 opacity-60 hover:opacity-100 hover:border-emerald-300'
-                    }`}
-                    whileHover={{ scale: index === currentSlide ? 1.05 : 1.02 }}
-                  >
-                    <img
-                      src={project.image}
-                      alt={project.title || 'Proje'}
-                      className="absolute inset-0 w-full h-full object-cover"
-                      loading="lazy"
-                    />
-                  </motion.button>
-                ))}
-              </motion.div>
-            )}
+            <motion.button
+              onClick={scrollToProducts}
+              className="group inline-flex items-center gap-3 px-8 py-4 bg-white/10 backdrop-blur-sm border-2 border-white/20 text-white font-semibold text-lg rounded-full hover:bg-white/20 transition-all"
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <span>Aşağı Kaydır</span>
+              <HiArrowDown 
+                className="group-hover:translate-y-1 transition-transform animate-bounce" 
+                size={24} 
+              />
+            </motion.button>
           </motion.div>
         </div>
-      </div>
 
-      {/* Scroll indicator */}
-      <motion.div
-        className="absolute bottom-8 left-1/2 transform -translate-x-1/2 hidden lg:block"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.5 }}
-      >
+        {/* Scroll Indicator */}
         <motion.div
-          animate={{ y: [0, 8, 0] }}
-          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-          className="flex flex-col items-center gap-2 text-slate-400"
+          className="absolute bottom-8 left-1/2 -translate-x-1/2"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1 }}
         >
-          <span className="text-xs font-medium uppercase tracking-wider">Aşağı Kaydır</span>
-          <div className="w-6 h-10 border-2 border-slate-300 rounded-full flex justify-center p-1">
+          <motion.div
+            animate={{ y: [0, 10, 0] }}
+            transition={{ duration: 2, repeat: Infinity }}
+            className="w-6 h-10 border-2 border-white/30 rounded-full flex justify-center"
+          >
             <motion.div
-              className="w-1 h-3 bg-slate-400 rounded-full"
-              animate={{ y: [0, 14, 0] }}
-              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+              animate={{ y: [0, 12, 0] }}
+              transition={{ duration: 2, repeat: Infinity }}
+              className="w-1 h-3 bg-white/50 rounded-full mt-2"
             />
-          </div>
+          </motion.div>
         </motion.div>
-      </motion.div>
+      </div>
     </section>
   );
 };

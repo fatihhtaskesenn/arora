@@ -52,30 +52,31 @@ const Navbar = () => {
     <motion.nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b ${
         isScrolled
-          ? 'bg-rose-900/95 backdrop-blur-2xl shadow-lg shadow-rose-950/50 py-3 md:py-4 border-rose-800'
-          : 'bg-rose-800/95 backdrop-blur-md py-4 md:py-6 border-rose-700'
+          ? 'bg-[#8B0000]/95 backdrop-blur-2xl shadow-lg shadow-[#5A0000]/50 py-3 md:py-4 border-[#6B0000]'
+          : 'bg-[#8B0000]/95 backdrop-blur-md py-4 md:py-6 border-[#7B0000]'
       }`}
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.3 }}
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between relative">
           {/* Logo */}
           <motion.div
             whileHover={{ scale: 1.05 }}
             transition={{ duration: 0.2 }}
+            className="flex-shrink-0"
           >
             <Logo />
           </motion.div>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-10">
+          {/* Desktop Navigation - Ortada */}
+          <div className="hidden md:flex items-center gap-8 lg:gap-10 absolute left-1/2 -translate-x-1/2">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="relative text-lg font-semibold text-rose-50 hover:text-emerald-300 transition-colors duration-200 group"
+                className="relative text-base lg:text-lg font-semibold text-white hover:text-emerald-300 transition-colors duration-200 group whitespace-nowrap"
               >
                 {link.label}
                 <motion.span 
@@ -88,11 +89,11 @@ const Navbar = () => {
           </div>
 
           {/* Desktop Actions */}
-          <div className="hidden md:flex items-center gap-4">
+          <div className="hidden md:flex items-center gap-4 flex-shrink-0">
             {/* CTA Button */}
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Link href="/contact">
-                <button className="px-8 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-bold rounded-full shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 transition-all duration-300">
+                <button className="px-6 lg:px-8 py-2.5 lg:py-3 bg-[#34D399] hover:bg-[#2FC085] text-white font-bold rounded-lg lg:rounded-full shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 transition-all duration-300 text-sm lg:text-base">
                   İletişime Geç
                 </button>
               </Link>
@@ -101,7 +102,7 @@ const Navbar = () => {
 
           {/* Mobile Menu Button */}
           <button
-            className="md:hidden p-2 text-rose-50 hover:text-emerald-300 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 rounded-lg"
+            className="md:hidden p-2 text-white hover:text-emerald-300 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 rounded-lg"
             onClick={toggleMobileMenu}
             aria-label={isMobileMenuOpen ? 'Menüyü Kapat' : 'Menüyü Aç'}
             aria-expanded={isMobileMenuOpen}
@@ -131,7 +132,7 @@ const Navbar = () => {
             
             {/* Menu Content */}
             <motion.div
-              className="fixed top-0 left-0 right-0 bg-gradient-to-b from-rose-950 via-rose-900 to-rose-950 shadow-2xl border-b border-rose-800 z-40 md:hidden h-screen overflow-y-auto"
+              className="fixed top-0 left-0 right-0 bg-gradient-to-b from-[#6B0000] via-[#8B0000] to-[#6B0000] shadow-2xl border-b border-[#7B0000] z-40 md:hidden h-screen overflow-y-auto"
               initial={{ opacity: 0, x: '100%' }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: '100%' }}
@@ -142,7 +143,7 @@ const Navbar = () => {
                 <div className="flex justify-end mb-6">
                   <button
                     onClick={toggleMobileMenu}
-                    className="p-2 text-rose-50 hover:text-emerald-300 transition-colors"
+                    className="p-2 text-white hover:text-emerald-300 transition-colors"
                     aria-label="Menüyü Kapat"
                   >
                     <HiX size={24} />
@@ -160,7 +161,7 @@ const Navbar = () => {
                     >
                       <Link
                         href={link.href}
-                        className="block py-3 px-4 text-base font-semibold text-white hover:text-emerald-300 bg-rose-800/80 hover:bg-rose-700/90 rounded-xl transition-all duration-200 border border-rose-700/70 hover:border-emerald-500/70 shadow-lg"
+                        className="block py-3 px-4 text-base font-semibold text-white hover:text-emerald-300 bg-[#6B0000]/80 hover:bg-[#7B0000]/90 rounded-xl transition-all duration-200 border border-[#7B0000]/70 hover:border-emerald-500/70 shadow-lg"
                         onClick={toggleMobileMenu}
                       >
                         <div className="flex items-center justify-between">
@@ -175,7 +176,7 @@ const Navbar = () => {
                 </div>
 
                 {/* Mobile Actions */}
-                <div className="flex flex-col gap-3 pt-4 border-t border-rose-800/70">
+                <div className="flex flex-col gap-3 pt-4 border-t border-[#7B0000]/70">
                   <Link href="/contact" onClick={toggleMobileMenu} className="w-full">
                     <button className="w-full px-6 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-semibold text-base rounded-full shadow-xl hover:shadow-2xl hover:from-emerald-600 hover:to-emerald-700 transition-all duration-200">
                       İletişime Geç
